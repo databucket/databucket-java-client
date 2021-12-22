@@ -20,11 +20,23 @@ public class Databucket {
     private final String serviceUrl;
     private final Gson gson;
     private final Client client;
-    private final Map<String, Object> httpHeaders = new HashMap();
+    private final Map<String, Object> httpHeaders = new HashMap<>();
 
     public Databucket(String serviceUrl, boolean logs) {
         this.serviceUrl = serviceUrl;
         client = Client.create();
+        if (logs)
+            client.addFilter(new LoggingFilter(System.out));
+        gson = new GsonBuilder().disableHtmlEscaping().create();
+    }
+
+    public Databucket(String serviceUrl, boolean logs, Proxy proxy) {
+        this.serviceUrl = serviceUrl;
+
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.initializeProxy(proxy);
+        URLConnectionClientHandler clientHandler = new URLConnectionClientHandler(connectionFactory);
+        client = new Client(clientHandler);
         if (logs)
             client.addFilter(new LoggingFilter(System.out));
         gson = new GsonBuilder().disableHtmlEscaping().create();
@@ -65,7 +77,6 @@ public class Databucket {
         httpHeaders.put(name, value);
     }
 
-
     public void setHeaders(Builder builder) {
         for (Map.Entry<String, Object> entry : httpHeaders.entrySet())
             builder = builder.header(entry.getKey(), entry.getValue());
@@ -73,7 +84,7 @@ public class Databucket {
 
     @SuppressWarnings("unchecked")
     public void authenticate(String username, String password, Integer projectId) {
-        Map<String, Object> json = new HashMap<String, Object>();
+        Map<String, Object> json = new HashMap<>();
         json.put("username", username);
         json.put("password", password);
         if (projectId != null)
@@ -82,7 +93,7 @@ public class Databucket {
         String payload = gson.toJson(json);
 
         WebResource webResource = client.resource(buildUrl("/api/public/signin"));
-        Builder builder = webResource.type(MediaType.APPLICATION_JSON);
+        Builder builder = webResource.type(MediaType.APPLICATION_JSON).header("user-agent", "api-client");
         setHeaders(builder);
 
         ClientResponse response = builder.post(ClientResponse.class, payload);
