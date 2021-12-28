@@ -56,6 +56,18 @@ public class Bucket {
             throw new RuntimeException("Response status: " + response.getStatus() + "\n\n" + responseBody);
     }
 
+    public void insertMultiData(List<? extends Data> dataList) {
+        WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s/multi", bucketName)));
+        WebResource.Builder builder = webResource.type(MediaType.APPLICATION_JSON);
+        databucket.setHeaders(builder);
+
+        ClientResponse response = builder.post(ClientResponse.class, gson.toJson(dataList));
+        String responseBody = response.getEntity(String.class);
+
+        if (response.getStatus() != 201)
+            throw new RuntimeException("Response status: " + response.getStatus() + "\n\n" + responseBody);
+    }
+
 
     @SuppressWarnings("unchecked")
     public Data getData(Long id) {
