@@ -1,6 +1,8 @@
 package pl.databucket.examples.data.user;
 
-public enum UserEyeColor {
+import pl.databucket.client.PropertyEnum;
+
+public enum UserEyeColor implements PropertyEnum {
     BLUE("blue"),
     BLACK("black"),
     GREEN("green"),
@@ -10,5 +12,10 @@ public enum UserEyeColor {
 
     UserEyeColor(final String newValue) {
         colorName = newValue;
+    }
+
+    @Override
+    public Object getValue() {
+        return colorName;
     }
 }

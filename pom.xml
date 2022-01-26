@@ -5,12 +5,17 @@
 
     <groupId>pl.databucket</groupId>
     <artifactId>databucket-client</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <name>Databucket Client</name>
     <description>Databucket APIs Client Library for Java</description>
-    <url>https://databucket.pl</url>
+    <url>https://github.com/databucket/databucket-java-client</url>
+
+    <organization>
+        <name>Databucket</name>
+        <url>https://github.com/databucket/databucket-java-client</url>
+    </organization>
 
     <licenses>
         <license>
@@ -21,6 +26,7 @@
 
     <developers>
         <developer>
+            <id>kslysz</id>
             <name>Krzysztof Słysz</name>
             <email>kslysz@gmail.com</email>
         </developer>
@@ -32,6 +38,11 @@
         <url>https://github.com/databucket</url>
         <tag>test data management</tag>
     </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/databucket/databucket-java-client/issues</url>
+    </issueManagement>
 
     <distributionManagement>
         <snapshotRepository>

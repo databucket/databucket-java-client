@@ -19,15 +19,10 @@ public class Bucket {
     private final String bucketName;
     private final Gson gson;
 
-
     public Bucket(Databucket databucket, String bucketName) {
         this.databucket = databucket;
         this.bucketName = bucketName;
         gson = new GsonBuilder().disableHtmlEscaping().create();
-    }
-
-    public Databucket getDatabucket() {
-        return databucket;
     }
 
     public Data insertData(Data data) {
@@ -118,7 +113,7 @@ public class Bucket {
 
 
     @SuppressWarnings("unchecked")
-    public Data reserveData(Rules matchRules, boolean random) {
+    public Data reserveData(Rules rules, boolean random) {
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         queryParams.add("limit", "1");
         if (random)
@@ -129,7 +124,7 @@ public class Bucket {
         WebResource.Builder builder = webResource.type(MediaType.APPLICATION_JSON);
         databucket.setHeaders(builder);
 
-        ClientResponse response = builder.post(ClientResponse.class, matchRules.toJsonString());
+        ClientResponse response = builder.post(ClientResponse.class, rules.toJsonString());
         String responseBody = response.getEntity(String.class);
 
         if (response.getStatus() == 200) {

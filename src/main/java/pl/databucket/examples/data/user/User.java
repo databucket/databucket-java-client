@@ -7,6 +7,7 @@ public class User extends Data {
     // User properties
     public static final String EYE_COLOR = "$.eyeColor";
     public static final String EMAIL = "$.contact.email";
+    public static final String NUMBER = "$.number";
 
     public User() {
         super(new Data());
@@ -38,6 +39,14 @@ public class User extends Data {
 
     public void setEmail(String email) {
         setProperty(EMAIL, email);
+    }
+
+    public Integer getNumber() {
+        return (Integer) getProperty(NUMBER);
+    }
+
+    public void setNumber(Integer number) {
+        setProperty(NUMBER, number);
     }
 
 }

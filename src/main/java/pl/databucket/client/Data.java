@@ -82,7 +82,7 @@ public class Data {
 	
 	public void setProperty(String propertyPath, Object value) {
 		if (properties == null)
-			properties = new HashMap<String, Object>();
+			properties = new HashMap<>();
 		
 		setValueByPath(this.properties, propertyPath, value);
 	}
@@ -91,7 +91,7 @@ public class Data {
 		if (this.properties == null)
 			return null;
 		else
-			return getValueByPath(this.properties, propertyPath);
+			return getValueByPath(this.properties, propertyPath.replace("$.", ""));
 	}
 	
 	public Date getCreatedAt() {

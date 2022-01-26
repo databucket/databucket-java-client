@@ -1,5 +1,7 @@
 package pl.databucket.examples;
 
+import pl.databucket.client.Operator;
+import pl.databucket.client.Rules;
 import pl.databucket.examples.config.ServerConfig;
 import pl.databucket.examples.data.user.*;
 import pl.databucket.client.Databucket;
@@ -28,23 +30,23 @@ public class Example {
 //        System.out.println("userId: " + user.getId());
 
         // insert a new multi data.user
-        User user1 = new User();
-        user1.setReserved(true);
-        user1.setTag(UserTag.GOOD);
-        user1.setEyeColor(UserEyeColor.BLUE);
-        user1.setEmail("jakismail@test.io");
-
-        User user2 = new User();
-        user2.setReserved(false);
-        user2.setTag(UserTag.ANALYSIS);
-        user2.setEyeColor(UserEyeColor.BLUE);
-        user2.setEmail("jakismail@test.io");
-
-        List<User> userList = new ArrayList<>();
-        userList.add(user1);
-        userList.add(user2);
-
-        bucketUsers.insertMultiUser(userList);
+//        User user1 = new User();
+//        user1.setReserved(true);
+//        user1.setTag(UserTag.GOOD);
+//        user1.setEyeColor(UserEyeColor.BLUE);
+//        user1.setEmail("samplemail@test.io");
+//
+//        User user2 = new User();
+//        user2.setReserved(false);
+//        user2.setTag(UserTag.ANALYSIS);
+//        user2.setEyeColor(UserEyeColor.BLUE);
+//        user2.setEmail("samplemail@test.io");
+//
+//        List<User> userList = new ArrayList<>();
+//        userList.add(user1);
+//        userList.add(user2);
+//
+//        bucketUsers.insertMultiUser(userList);
 
 //        // modify data.user
 //        user.setTag(UserTag.TRASH);
@@ -52,13 +54,15 @@ public class Example {
 //        user = bucketUsers.updateUser(user);
 //
 //        // rules def
-//        Rules rules = new Rules();
-//        rules.addRule(UserRules.goodUser());
-//        rules.addRule(User.EYE_COLOR, Operator.equal, UserEyeColor.BLUE);
-//
-//        // get data.user by rules
-//        user = bucketUsers.getUser(rules);
-//
+        Rules rules = new Rules();
+        rules.addRule(UserRules.goodUser());
+        rules.addRule(User.EYE_COLOR, Operator.equal, UserEyeColor.BLUE);
+//        rules.addRule(User.NUMBER, Operator.notEqual, UserNumber.ONE);
+
+        // get data.user by rules
+        User user = bucketUsers.getUser(rules);
+        System.out.println(user.getEmail());
+
 //        // reserve data.user by rules
 //        user = bucketUsers.reserveUser(rules);
 

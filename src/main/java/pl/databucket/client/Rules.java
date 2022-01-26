@@ -82,25 +82,37 @@ public class Rules {
         return stringBuilder.toString();
     }
 
-    private String getMatchRuleStr(Rule matchRule) {
+    private String getMatchRuleStr(Rule rule) {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("[");
 
         // leftObject
-        if (matchRule.getLeftObject() instanceof String)
-            stringBuilder.append("\"").append(matchRule.getLeftObject()).append("\", ");
-        else
-            stringBuilder.append(matchRule.getLeftObject()).append(", ");
+        if (rule.getLeftObject() instanceof String)
+            stringBuilder.append("\"").append(rule.getLeftObject()).append("\", ");
+        else if (rule.getLeftObject() instanceof PropertyEnum) {
+            Object enumValue = ((PropertyEnum) rule.getLeftObject()).getValue();
+            if (enumValue instanceof String)
+                stringBuilder.append("\"").append(enumValue).append("\"");
+            else
+                stringBuilder.append(enumValue);
+        } else
+            stringBuilder.append(rule.getLeftObject()).append(", ");
 
         // operator
-        stringBuilder.append("\"").append(matchRule.getOperator().toString()).append("\", ");
+        stringBuilder.append("\"").append(rule.getOperator().toString()).append("\", ");
 
         // rightObject
-        if (matchRule.getRightObject() instanceof String)
-            stringBuilder.append("\"").append(matchRule.getRightObject()).append("\"");
-        else
-            stringBuilder.append(matchRule.getRightObject());
+        if (rule.getRightObject() instanceof String)
+            stringBuilder.append("\"").append(rule.getRightObject()).append("\"");
+        else if (rule.getRightObject() instanceof PropertyEnum) {
+            Object enumValue = ((PropertyEnum) rule.getRightObject()).getValue();
+            if (enumValue instanceof String)
+                stringBuilder.append("\"").append(enumValue).append("\"");
+            else
+                stringBuilder.append(enumValue);
+        } else
+            stringBuilder.append(rule.getRightObject());
 
         stringBuilder.append("]");
 
