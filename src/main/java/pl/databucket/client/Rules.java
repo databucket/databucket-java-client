@@ -11,6 +11,10 @@ public class Rules {
     public Rules() {
     }
 
+    public Rules(List<Rules> rules) {
+        this.rules.addAll(rules);
+    }
+
     public Rules(Rule rule) {
         this.rules.add(rule);
     }
@@ -25,6 +29,10 @@ public class Rules {
 
     public void addRule(Object leftObject, Operator operator, Object rightObject) {
         this.rules.add(new Rule(leftObject, operator, rightObject));
+    }
+
+    public void addRules(List<Rule> rules) {
+        this.rules.addAll(rules);
     }
 
     public void addRule(Rule rule) {
