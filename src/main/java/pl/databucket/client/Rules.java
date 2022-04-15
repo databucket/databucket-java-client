@@ -11,7 +11,7 @@ public class Rules {
     public Rules() {
     }
 
-    public Rules(List<Rules> rules) {
+    public Rules(List<Rule> rules) {
         this.rules.addAll(rules);
     }
 
