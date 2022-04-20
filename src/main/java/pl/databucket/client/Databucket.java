@@ -28,6 +28,7 @@ public class Databucket {
         if (logs)
             client.addFilter(new LoggingFilter(System.out));
         gson = new GsonBuilder().disableHtmlEscaping().create();
+        addBaseHeaders();
     }
 
     public Databucket(String serviceUrl, boolean logs, Proxy proxy) {
@@ -40,6 +41,7 @@ public class Databucket {
         if (logs)
             client.addFilter(new LoggingFilter(System.out));
         gson = new GsonBuilder().disableHtmlEscaping().create();
+        addBaseHeaders();
     }
 
     public Databucket(String serviceUrl, String username, String password, Integer projectId, boolean logs) {
@@ -48,6 +50,7 @@ public class Databucket {
         if (logs)
             client.addFilter(new LoggingFilter(System.out));
         gson = new GsonBuilder().disableHtmlEscaping().create();
+        addBaseHeaders();
         authenticate(username, password, projectId);
     }
 
@@ -62,6 +65,7 @@ public class Databucket {
             client.addFilter(new LoggingFilter(System.out));
 
         gson = new GsonBuilder().disableHtmlEscaping().create();
+        addBaseHeaders();
         authenticate(username, password, projectId);
     }
 
@@ -77,9 +81,13 @@ public class Databucket {
         httpHeaders.put(name, value);
     }
 
-    public void setHeaders(Builder builder) {
-        for (Map.Entry<String, Object> entry : httpHeaders.entrySet())
-            builder = builder.header(entry.getKey(), entry.getValue());
+    private void addBaseHeaders() {
+        httpHeaders.put("user-agent", "api-client");
+        httpHeaders.put("Content-Type", "application/json");
+    }
+
+    public Map<String, Object> getHeaders() {
+        return httpHeaders;
     }
 
     @SuppressWarnings("unchecked")
@@ -93,8 +101,9 @@ public class Databucket {
         String payload = gson.toJson(json);
 
         WebResource webResource = client.resource(buildUrl("/api/public/signin"));
-        Builder builder = webResource.type(MediaType.APPLICATION_JSON).header("user-agent", "api-client");
-        setHeaders(builder);
+        Builder builder = webResource.getRequestBuilder();
+        for (Map.Entry<String, Object> entry : getHeaders().entrySet())
+            builder = builder.header(entry.getKey(), entry.getValue());
 
         ClientResponse response = builder.post(ClientResponse.class, payload);
         String responseBody = response.getEntity(String.class);

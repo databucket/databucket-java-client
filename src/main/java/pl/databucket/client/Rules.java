@@ -1,7 +1,9 @@
 package pl.databucket.client;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Rules {
 
@@ -31,99 +33,76 @@ public class Rules {
         this.rules.add(new Rule(leftObject, operator, rightObject));
     }
 
-    public void addRules(List<Rule> rules) {
-        this.rules.addAll(rules);
-    }
-
     public void addRule(Rule rule) {
         this.rules.add(rule);
     }
 
-    public void addSubRules(Rules rules) {
+    public void addRules(List<Rule> rules) {
+        this.rules.addAll(rules);
+    }
+
+    public void addNestedRules(Rules rules) {
         this.rules.add(rules);
     }
 
-    public List<Object> getMatchRules() {
+    public List<Object> getOwnRules() {
         return this.rules;
     }
 
-    public String toJsonString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("{\"rules\":");
-        if (rules.size() > 0) {
-            stringBuilder.append("[");
-            if (logicalOperator == LogicalOperator.and) {
-                for (int i = 0; i < rules.size(); i++) {
-                    Object item = rules.get(i);
+    public LogicalOperator getOwnOperator() {
+        return this.logicalOperator;
+    }
+
+    public List<Object> toNativeObject() {
+        List<Object> list = new ArrayList<>();
+        if (getOwnRules().size() > 0) {
+            if (getOwnOperator() == LogicalOperator.and) {
+                getOwnRules().forEach(item -> {
                     if (item instanceof Rules)
-                        stringBuilder.append(getMatchRulesStr((Rules) item));
+                        list.add(rulesToMap((Rules) item));
                     else if (item instanceof Rule)
-                        stringBuilder.append(getMatchRuleStr((Rule) item));
-
-                    if (i < rules.size() - 1)
-                        stringBuilder.append(",");
-                }
+                        list.add(ruleToList((Rule) item));
+                });
             } else
-                stringBuilder.append(getMatchRulesStr(this));
-            stringBuilder.append("]");
-        } else
-            stringBuilder.append("null");
-
-        stringBuilder.append("}");
-        return stringBuilder.toString();
-    }
-
-    private String getMatchRulesStr(Rules matchRules) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("{").append("\"").append(matchRules.logicalOperator.toString()).append("\": [");
-        for (int i = 0; i < matchRules.getMatchRules().size(); i++) {
-            Object item = matchRules.getMatchRules().get(i);
-            if (item instanceof Rules)
-                stringBuilder.append(getMatchRulesStr((Rules) item));
-            else if (item instanceof Rule)
-                stringBuilder.append(getMatchRuleStr((Rule) item));
-
-            if (i < matchRules.getMatchRules().size() - 1)
-                stringBuilder.append(",");
+                list.add(rulesToMap(this));
         }
-        stringBuilder.append("]}");
-        return stringBuilder.toString();
+        return list;
     }
 
-    private String getMatchRuleStr(Rule rule) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private Map<String, Object> rulesToMap(Rules rules) {
+        List<Object> list = new ArrayList<>();
+        rules.getOwnRules().forEach(item -> {
+            if (item instanceof Rules)
+                list.add(rulesToMap((Rules) item));
+            else if (item instanceof Rule)
+                list.add(ruleToList((Rule) item));
+        });
 
-        stringBuilder.append("[");
+        Map<String, Object> map = new HashMap<>();
+        map.put(rules.getOwnOperator().toString(), list);
+        return map;
+    }
+
+    private List<Object> ruleToList(Rule rule) {
+        List<Object> list = new ArrayList<>();
 
         // leftObject
-        if (rule.getLeftObject() instanceof String)
-            stringBuilder.append("\"").append(rule.getLeftObject()).append("\", ");
-        else if (rule.getLeftObject() instanceof PropertyEnum) {
+        if (rule.getLeftObject() instanceof PropertyEnum) {
             Object enumValue = ((PropertyEnum) rule.getLeftObject()).getValue();
-            if (enumValue instanceof String)
-                stringBuilder.append("\"").append(enumValue).append("\"");
-            else
-                stringBuilder.append(enumValue);
+            list.add(enumValue);
         } else
-            stringBuilder.append(rule.getLeftObject()).append(", ");
+            list.add(rule.getLeftObject());
 
         // operator
-        stringBuilder.append("\"").append(rule.getOperator().toString()).append("\", ");
+        list.add(rule.getOperator().toString());
 
         // rightObject
-        if (rule.getRightObject() instanceof String)
-            stringBuilder.append("\"").append(rule.getRightObject()).append("\"");
-        else if (rule.getRightObject() instanceof PropertyEnum) {
+        if (rule.getRightObject() instanceof PropertyEnum) {
             Object enumValue = ((PropertyEnum) rule.getRightObject()).getValue();
-            if (enumValue instanceof String)
-                stringBuilder.append("\"").append(enumValue).append("\"");
-            else
-                stringBuilder.append(enumValue);
+            list.add(enumValue);
         } else
-            stringBuilder.append(rule.getRightObject());
+            list.add(rule.getRightObject());
 
-        stringBuilder.append("]");
-
-        return stringBuilder.toString();
+        return list;
     }
 }

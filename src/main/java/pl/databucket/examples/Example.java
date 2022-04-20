@@ -1,13 +1,13 @@
 package pl.databucket.examples;
 
-import pl.databucket.client.Operator;
-import pl.databucket.client.Rules;
+import pl.databucket.client.*;
 import pl.databucket.examples.config.ServerConfig;
 import pl.databucket.examples.data.user.*;
-import pl.databucket.client.Databucket;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Example {
 
@@ -23,6 +23,7 @@ public class Example {
     private void run() {
         // insert a new data.user
 //        User user = new User();
+//        user.setTag(UserTag.GOOD);
 //        user.setReserved(true);
 //        user.setEyeColor(UserEyeColor.BLUE);
 //        user.setEmail("jakismail@test.io");
@@ -48,22 +49,32 @@ public class Example {
 //
 //        bucketUsers.insertMultiUser(userList);
 
-//        // modify data.user
+        // modify data.user
 //        user.setTag(UserTag.TRASH);
 //        user.setReserved(false);
 //        user = bucketUsers.updateUser(user);
-//
-//        // rules def
+
+        // rules def
+//        Rules nestedRules = new Rules(LogicalOperator.or);
+//        nestedRules.addRule(User.EMAIL, Operator.like, "%email%");
+//        nestedRules.addRule("id", Operator.graterEqual, 0);
+
         Rules rules = new Rules();
         rules.addRule(UserRules.goodUser());
-        rules.addRule(User.EYE_COLOR, Operator.equal, UserEyeColor.BLUE);
+//        rules.addRule(User.EYE_COLOR, Operator.equal, UserEyeColor.BLUE);
 //        rules.addRule(User.NUMBER, Operator.notEqual, UserNumber.ONE);
+//        rules.addNestedRules(nestedRules);
+
+        List<String> fields = new ArrayList<>();
+        fields.add(Field.ID);
+        fields.add(User.EMAIL);
+        fields.add(User.EYE_COLOR);
 
         // get data.user by rules
-        User user = bucketUsers.getUser(rules);
+        User user = bucketUsers.getUser(rules, fields);
         System.out.println(user.getEmail());
 
-//        // reserve data.user by rules
+        // reserve data.user by rules
 //        user = bucketUsers.reserveUser(rules);
 
     }

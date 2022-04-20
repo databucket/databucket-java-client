@@ -8,8 +8,8 @@ public class ServerConfig {
      */
 
     public static final String SERVER_URL = "https://databucket.pl/app";
-    public static final String USER_NAME = "set user name";
-    public static final String PASSWORD = "set password";
+    public static final String USER_NAME = "user-xcu9";
+    public static final String PASSWORD = "el1iv73vgfe";
     public static final int PROJECT_ID = 1;
     public static final boolean DEBUG_LOG = true;
 
