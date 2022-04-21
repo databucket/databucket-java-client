@@ -25,8 +25,10 @@ public class Bucket {
     }
 
     private void setHeaders(WebResource.Builder builder) {
-        for (Map.Entry<String, Object> entry : databucket.getHeaders().entrySet())
-            builder = builder.header(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, List<String>> entry : databucket.getHeaders().entrySet()) {
+            String value = entry.getValue().toString();
+            builder = builder.header(entry.getKey(), value.substring(1, value.length() - 1));
+        }
     }
 
     public RequestResponse insertData(Data data) {
