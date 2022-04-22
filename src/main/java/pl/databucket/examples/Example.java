@@ -72,7 +72,6 @@ public class Example {
 
         // get data.user by rules
         User user = bucketUsers.getUser(rules, fields);
-        System.out.println(user.getEmail());
 
         // reserve data.user by rules
 //        user = bucketUsers.reserveUser(rules);

@@ -81,13 +81,8 @@ public class Databucket {
     }
 
     private void addBaseHeaders() {
-        List<String> list = new ArrayList<>();
-        list.add("one");
-        list.add("two");
-        list.add("three");
         headers.putSingle("User-Agent", "api-client");
         headers.putSingle("Content-Type", "application/json");
-        headers.put("test", list);
     }
 
     public MultivaluedMap<String, String> getHeaders() {

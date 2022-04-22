@@ -46,14 +46,15 @@ public class Bucket {
         WebResource.Builder builder = webResource.getRequestBuilder();
         setHeaders(builder);
 
+        String payload = gson.toJson(json);
         long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, gson.toJson(json));
+        ClientResponse response = builder.post(ClientResponse.class, payload);
         long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(json);
+        requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
         requestResponse.setResponseDuration(end-start);
@@ -70,14 +71,15 @@ public class Bucket {
         WebResource.Builder builder = webResource.getRequestBuilder();
         setHeaders(builder);
 
+        String payload = gson.toJson(dataList);
         long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, gson.toJson(dataList));
+        ClientResponse response = builder.post(ClientResponse.class, payload);
         long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(dataList);
+        requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
         requestResponse.setResponseDuration(end-start);
@@ -103,23 +105,24 @@ public class Bucket {
         if (random)
             queryParams.add("sort", "random");
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("columns", fieldsToColumns(fields));
-        payload.put("rules", rules.toNativeObject());
+        Map<String, Object> json = new HashMap<>();
+        json.put("columns", fieldsToColumns(fields));
+        json.put("rules", rules.toNativeObject());
 
         WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
         webResource = webResource.queryParams(queryParams);
         WebResource.Builder builder = webResource.getRequestBuilder();
         setHeaders(builder);
 
+        String payload = gson.toJson(json);
         long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, gson.toJson(payload));
+        ClientResponse response = builder.post(ClientResponse.class, payload);
         long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(rules);
+        requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
         requestResponse.setResponseDuration(end-start);
@@ -169,17 +172,18 @@ public class Bucket {
         WebResource.Builder builder = webResource.getRequestBuilder();
         setHeaders(builder);
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("rules", rules.toNativeObject());
+        Map<String, Object> json = new HashMap<>();
+        json.put("rules", rules.toNativeObject());
 
+        String payload = gson.toJson(json);
         long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, gson.toJson(payload));
+        ClientResponse response = builder.post(ClientResponse.class, payload);
         long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(rules);
+        requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
         requestResponse.setResponseDuration(end-start);
@@ -202,17 +206,18 @@ public class Bucket {
         WebResource.Builder builder = webResource.getRequestBuilder();
         setHeaders(builder);
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("rules", rules.toNativeObject());
+        Map<String, Object> json = new HashMap<>();
+        json.put("rules", rules.toNativeObject());
 
+        String payload = gson.toJson(json);
         long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, gson.toJson(payload));
+        ClientResponse response = builder.post(ClientResponse.class, payload);
         long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(rules);
+        requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
         requestResponse.setResponseDuration(end-start);
@@ -239,14 +244,15 @@ public class Bucket {
         WebResource.Builder builder = webResource.getRequestBuilder();
         setHeaders(builder);
 
+        String payload = gson.toJson(json);
         long start = System.currentTimeMillis();
-        ClientResponse response = builder.put(ClientResponse.class, gson.toJson(json));
+        ClientResponse response = builder.put(ClientResponse.class, payload);
         long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("PUT");
         requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(data);
+        requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
         requestResponse.setResponseDuration(end-start);
@@ -270,7 +276,7 @@ public class Bucket {
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("DELETE");
         requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(data);
+        requestResponse.setRequestBody(null);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
         requestResponse.setResponseDuration(end-start);
