@@ -21,7 +21,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 public class Databucket {
 
     private final String serviceUrl;
-    private final Gson gson;
+    private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
     private final Client client;
     private final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
 
@@ -30,7 +30,6 @@ public class Databucket {
         client = Client.create();
         if (logs)
             client.addFilter(new LoggingFilter(System.out));
-        gson = new GsonBuilder().disableHtmlEscaping().create();
         addBaseHeaders();
     }
 
@@ -43,7 +42,6 @@ public class Databucket {
         client = new Client(clientHandler);
         if (logs)
             client.addFilter(new LoggingFilter(System.out));
-        gson = new GsonBuilder().disableHtmlEscaping().create();
         addBaseHeaders();
     }
 
@@ -52,7 +50,6 @@ public class Databucket {
         client = Client.create();
         if (logs)
             client.addFilter(new LoggingFilter(System.out));
-        gson = new GsonBuilder().disableHtmlEscaping().create();
         addBaseHeaders();
         authenticate(username, password, projectId);
     }
@@ -66,8 +63,6 @@ public class Databucket {
         client = new Client(clientHandler);
         if (logs)
             client.addFilter(new LoggingFilter(System.out));
-
-        gson = new GsonBuilder().disableHtmlEscaping().create();
         addBaseHeaders();
         authenticate(username, password, projectId);
     }

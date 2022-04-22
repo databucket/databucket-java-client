@@ -55,15 +55,15 @@ public class Example {
 //        user = bucketUsers.updateUser(user);
 
         // rules def
-//        Rules nestedRules = new Rules(LogicalOperator.or);
-//        nestedRules.addRule(User.EMAIL, Operator.like, "%email%");
-//        nestedRules.addRule("id", Operator.graterEqual, 0);
+        Rules nestedRules = new Rules(LogicalOperator.or);
+        nestedRules.addRule(User.EMAIL, Operator.like, "%email%");
+        nestedRules.addRule("id", Operator.graterEqual, 0);
 
         Rules rules = new Rules();
         rules.addRule(UserRules.goodUser());
-//        rules.addRule(User.EYE_COLOR, Operator.equal, UserEyeColor.BLUE);
-//        rules.addRule(User.NUMBER, Operator.notEqual, UserNumber.ONE);
-//        rules.addNestedRules(nestedRules);
+        rules.addRule(User.EYE_COLOR, Operator.equal, UserEyeColor.BLUE);
+        rules.addRule(User.NUMBER, Operator.notEqual, UserNumber.ONE);
+        rules.addNestedRules(nestedRules);
 
         List<String> fields = new ArrayList<>();
         fields.add(Field.ID);
