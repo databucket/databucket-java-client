@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+
 import javax.ws.rs.core.MultivaluedMap;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -47,9 +48,6 @@ public class Bucket {
         setHeaders(builder);
 
         String payload = gson.toJson(json);
-        long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, payload);
-        long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
@@ -57,11 +55,19 @@ public class Bucket {
         requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
-        requestResponse.setResponseDuration(end-start);
-        requestResponse.setResponseStatus(response.getStatus());
-        requestResponse.setResponseCorrect(response.getStatus() == 201);
-        requestResponse.setResponseHeaders(response.getHeaders());
-        requestResponse.setResponseBody(response.getEntity(String.class));
+        long start = System.currentTimeMillis();
+        try {
+            ClientResponse response = builder.post(ClientResponse.class, payload);
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 201);
+            requestResponse.setResponseHeaders(response.getHeaders());
+            requestResponse.setResponseBody(response.getEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
+        }
 
         return requestResponse;
     }
@@ -72,9 +78,6 @@ public class Bucket {
         setHeaders(builder);
 
         String payload = gson.toJson(dataList);
-        long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, payload);
-        long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
@@ -82,11 +85,19 @@ public class Bucket {
         requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
-        requestResponse.setResponseDuration(end-start);
-        requestResponse.setResponseStatus(response.getStatus());
-        requestResponse.setResponseCorrect(response.getStatus() == 201);
-        requestResponse.setResponseHeaders(response.getHeaders());
-        requestResponse.setResponseBody(response.getEntity(String.class));
+        long start = System.currentTimeMillis();
+        try {
+            ClientResponse response = builder.post(ClientResponse.class, payload);
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 201);
+            requestResponse.setResponseHeaders(response.getHeaders());
+            requestResponse.setResponseBody(response.getEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
+        }
 
         return requestResponse;
     }
@@ -115,9 +126,6 @@ public class Bucket {
         setHeaders(builder);
 
         String payload = gson.toJson(json);
-        long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, payload);
-        long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
@@ -125,11 +133,19 @@ public class Bucket {
         requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
-        requestResponse.setResponseDuration(end-start);
-        requestResponse.setResponseStatus(response.getStatus());
-        requestResponse.setResponseCorrect(response.getStatus() == 200);
-        requestResponse.setResponseHeaders(response.getHeaders());
-        requestResponse.setResponseBody(response.getEntity(String.class));
+        long start = System.currentTimeMillis();
+        try {
+            ClientResponse response = builder.post(ClientResponse.class, payload);
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 200);
+            requestResponse.setResponseHeaders(response.getHeaders());
+            requestResponse.setResponseBody(response.getEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+        }
 
         return requestResponse;
     }
@@ -139,20 +155,24 @@ public class Bucket {
         WebResource.Builder builder = webResource.getRequestBuilder();
         setHeaders(builder);
 
-        long start = System.currentTimeMillis();
-        ClientResponse response = builder.get(ClientResponse.class);
-        long end = System.currentTimeMillis();
-
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("GET");
         requestResponse.setRequestHeaders(databucket.getHeaders());
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
-        requestResponse.setResponseDuration(end-start);
-        requestResponse.setResponseStatus(response.getStatus());
-        requestResponse.setResponseCorrect(response.getStatus() == 200);
-        requestResponse.setResponseHeaders(response.getHeaders());
-        requestResponse.setResponseBody(response.getEntity(String.class));
+        long start = System.currentTimeMillis();
+        try {
+            ClientResponse response = builder.get(ClientResponse.class);
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 200);
+            requestResponse.setResponseHeaders(response.getHeaders());
+            requestResponse.setResponseBody(response.getEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+        }
 
         return requestResponse;
     }
@@ -176,9 +196,6 @@ public class Bucket {
         json.put("rules", rules.toNativeObject());
 
         String payload = gson.toJson(json);
-        long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, payload);
-        long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
@@ -186,11 +203,19 @@ public class Bucket {
         requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
-        requestResponse.setResponseDuration(end-start);
-        requestResponse.setResponseStatus(response.getStatus());
-        requestResponse.setResponseCorrect(response.getStatus() == 200);
-        requestResponse.setResponseHeaders(response.getHeaders());
-        requestResponse.setResponseBody(response.getEntity(String.class));
+        long start = System.currentTimeMillis();
+        try {
+            ClientResponse response = builder.post(ClientResponse.class, payload);
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 200);
+            requestResponse.setResponseHeaders(response.getHeaders());
+            requestResponse.setResponseBody(response.getEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+        }
 
         return requestResponse;
     }
@@ -210,9 +235,6 @@ public class Bucket {
         json.put("rules", rules.toNativeObject());
 
         String payload = gson.toJson(json);
-        long start = System.currentTimeMillis();
-        ClientResponse response = builder.post(ClientResponse.class, payload);
-        long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("POST");
@@ -220,11 +242,19 @@ public class Bucket {
         requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
-        requestResponse.setResponseDuration(end-start);
-        requestResponse.setResponseStatus(response.getStatus());
-        requestResponse.setResponseCorrect(response.getStatus() == 200);
-        requestResponse.setResponseHeaders(response.getHeaders());
-        requestResponse.setResponseBody(response.getEntity(String.class));
+        long start = System.currentTimeMillis();
+        try {
+            ClientResponse response = builder.post(ClientResponse.class, payload);
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 200);
+            requestResponse.setResponseHeaders(response.getHeaders());
+            requestResponse.setResponseBody(response.getEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+        }
 
         return requestResponse;
     }
@@ -245,9 +275,6 @@ public class Bucket {
         setHeaders(builder);
 
         String payload = gson.toJson(json);
-        long start = System.currentTimeMillis();
-        ClientResponse response = builder.put(ClientResponse.class, payload);
-        long end = System.currentTimeMillis();
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("PUT");
@@ -255,11 +282,19 @@ public class Bucket {
         requestResponse.setRequestBody(payload);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
-        requestResponse.setResponseDuration(end-start);
-        requestResponse.setResponseStatus(response.getStatus());
-        requestResponse.setResponseCorrect(response.getStatus() == 200);
-        requestResponse.setResponseHeaders(response.getHeaders());
-        requestResponse.setResponseBody(response.getEntity(String.class));
+        long start = System.currentTimeMillis();
+        try {
+            ClientResponse response = builder.put(ClientResponse.class, payload);
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 200);
+            requestResponse.setResponseHeaders(response.getHeaders());
+            requestResponse.setResponseBody(response.getEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+        }
 
         return requestResponse;
     }
@@ -269,21 +304,25 @@ public class Bucket {
         WebResource.Builder builder = webResource.getRequestBuilder();
         setHeaders(builder);
 
-        long start = System.currentTimeMillis();
-        ClientResponse response = builder.delete(ClientResponse.class);
-        long end = System.currentTimeMillis();
-
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("DELETE");
         requestResponse.setRequestHeaders(databucket.getHeaders());
         requestResponse.setRequestBody(null);
         requestResponse.setRequestUrl(webResource.getURI().toString());
 
-        requestResponse.setResponseDuration(end-start);
-        requestResponse.setResponseStatus(response.getStatus());
-        requestResponse.setResponseCorrect(response.getStatus() == 201);
-        requestResponse.setResponseHeaders(response.getHeaders());
-        requestResponse.setResponseBody(response.getEntity(String.class));
+        long start = System.currentTimeMillis();
+        try {
+            ClientResponse response = builder.delete(ClientResponse.class);
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 201);
+            requestResponse.setResponseHeaders(response.getHeaders());
+            requestResponse.setResponseBody(response.getEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+        }
 
         return requestResponse;
     }
@@ -314,8 +353,13 @@ public class Bucket {
             if (jsonObj.get(Field.TAG_ID) != null)
                 tagId = ((Double) jsonObj.get(Field.TAG_ID)).intValue();
 
-        if (jsonObj.containsKey(Field.RESERVED))
-            reserved = (Boolean) jsonObj.get(Field.RESERVED);
+        if (jsonObj.containsKey(Field.RESERVED)) {
+            Object objReserved = jsonObj.get(Field.RESERVED);
+            if (objReserved instanceof Boolean)
+                reserved = (Boolean) objReserved;
+            else
+                reserved = ((Double) objReserved) == 1;
+        }
 
         if (jsonObj.containsKey(Field.OWNER))
             owner = ((String) jsonObj.get(Field.OWNER));

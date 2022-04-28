@@ -13,9 +13,10 @@ public class RequestResponse {
     private MultivaluedMap<String, String> requestHeaders;
     private String requestBody;
 
-    private int responseStatus;
-    private long responseDuration;
+    private Integer responseStatus;
+    private Long responseDuration;
     private MultivaluedMap<String, String> responseHeaders;
     private String responseBody;
     private boolean responseCorrect;
+    private Exception exception;
 }
