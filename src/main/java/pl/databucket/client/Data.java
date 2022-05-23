@@ -84,7 +84,7 @@ public class Data {
 		if (properties == null)
 			properties = new HashMap<>();
 		
-		setValueByPath(this.properties, propertyPath, value);
+		setValueByPath(this.properties, propertyPath.replace("$.", ""), value);
 	}
 	
 	public Object getProperty(String propertyPath) {

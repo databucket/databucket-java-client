@@ -1,19 +1,17 @@
 package pl.databucket.examples;
 
 import pl.databucket.client.*;
-import pl.databucket.examples.config.ServerConfig;
+import pl.databucket.examples.config.SampleServerConfig;
 import pl.databucket.examples.data.user.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Example {
 
     // This should be initiated once
-    Databucket databucket = new Databucket(ServerConfig.SERVER_URL, ServerConfig.USER_NAME, ServerConfig.PASSWORD, ServerConfig.PROJECT_ID, ServerConfig.DEBUG_LOG);
-    BucketUsers bucketUsers = new BucketUsers(databucket, "int-users");
+    Databucket databucket = new Databucket(SampleServerConfig.SERVER_URL, SampleServerConfig.USER_NAME, SampleServerConfig.PASSWORD, SampleServerConfig.PROJECT_ID, SampleServerConfig.DEBUG_LOG);
+    SampleBucketUsers bucketUsers = new SampleBucketUsers(databucket, "int-users");
 
     public static void main(String[] args) {
         Example userExamples = new Example();
@@ -56,22 +54,22 @@ public class Example {
 
         // rules def
         Rules nestedRules = new Rules(LogicalOperator.or);
-        nestedRules.addRule(User.EMAIL, Operator.like, "%email%");
+        nestedRules.addRule(SampleUser.EMAIL, Operator.like, "%email%");
         nestedRules.addRule("id", Operator.graterEqual, 0);
 
         Rules rules = new Rules();
-        rules.addRule(UserRules.goodUser());
-        rules.addRule(User.EYE_COLOR, Operator.equal, UserEyeColor.BLUE);
-        rules.addRule(User.NUMBER, Operator.notEqual, UserNumber.ONE);
+        rules.addRule(SampleUserRules.goodUser());
+        rules.addRule(SampleUser.EYE_COLOR, Operator.equal, SampleUserEyeColor.BLUE);
+        rules.addRule(SampleUser.NUMBER, Operator.notEqual, SampleUserNumber.ONE);
         rules.addNestedRules(nestedRules);
 
         List<String> fields = new ArrayList<>();
         fields.add(Field.ID);
-        fields.add(User.EMAIL);
-        fields.add(User.EYE_COLOR);
+        fields.add(SampleUser.EMAIL);
+        fields.add(SampleUser.EYE_COLOR);
 
         // get data.user by rules
-        User user = bucketUsers.getUser(rules, fields);
+        SampleUser user = bucketUsers.getUser(rules, fields);
 
         // reserve data.user by rules
 //        user = bucketUsers.reserveUser(rules);

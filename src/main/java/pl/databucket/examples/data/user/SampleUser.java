@@ -2,34 +2,34 @@ package pl.databucket.examples.data.user;
 
 import pl.databucket.client.Data;
 
-public class User extends Data {
+public class SampleUser extends Data {
 
     // User properties
     public static final String EYE_COLOR = "$.eyeColor";
     public static final String EMAIL = "$.contact.email";
     public static final String NUMBER = "$.number";
 
-    public User() {
+    public SampleUser() {
         super(new Data());
     }
 
-    public User(Data data) {
+    public SampleUser(Data data) {
         super(data);
     }
 
-    public UserTag getTag() {
-        return UserTag.valueOf(getTagId());
+    public SampleUserTag getTag() {
+        return SampleUserTag.valueOf(getTagId());
     }
 
-    public void setTag(UserTag tag) {
+    public void setTag(SampleUserTag tag) {
         setTagId(tag.id());
     }
 
-    public UserEyeColor getEyeColor() {
-        return UserEyeColor.valueOf((String) getProperty(EYE_COLOR));
+    public SampleUserEyeColor getEyeColor() {
+        return SampleUserEyeColor.valueOf((String) getProperty(EYE_COLOR));
     }
 
-    public void setEyeColor(UserEyeColor eyeColor) {
+    public void setEyeColor(SampleUserEyeColor eyeColor) {
         setProperty(EYE_COLOR, eyeColor.name());
     }
 

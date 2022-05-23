@@ -1,6 +1,6 @@
 package pl.databucket.examples.data.user;
 
-public enum UserTag {
+public enum SampleUserTag {
     GOOD(1),
     TRASH(2),
     DELETED(3),
@@ -9,7 +9,7 @@ public enum UserTag {
 
     private final int tagId;
 
-    UserTag(final int newValue) {
+    SampleUserTag(final int newValue) {
         tagId = newValue;
     }
 
@@ -17,8 +17,8 @@ public enum UserTag {
         return tagId;
     }
 
-    public static UserTag valueOf(int tagId) {
-        for (UserTag tag : UserTag.values()) {
+    public static SampleUserTag valueOf(int tagId) {
+        for (SampleUserTag tag : SampleUserTag.values()) {
             if (tag.id() == tagId) {
                 return tag;
             }

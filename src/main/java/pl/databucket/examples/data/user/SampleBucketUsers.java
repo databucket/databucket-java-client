@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class BucketUsers extends Bucket {
+public class SampleBucketUsers extends Bucket {
 
     private final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-    public BucketUsers(Databucket databucket, String bucketName) {
+    public SampleBucketUsers(Databucket databucket, String bucketName) {
         super(databucket, bucketName);
     }
 
@@ -23,7 +23,7 @@ public class BucketUsers extends Bucket {
     }
 
 
-    public User getUser(Rules rules) {
+    public SampleUser getUser(Rules rules) {
         RequestResponse rr = getData(rules);
         if (rr.isResponseCorrect()) {
             Map<String, Object> json = strToJson(rr.getResponseBody());
@@ -31,7 +31,7 @@ public class BucketUsers extends Bucket {
                 List<Map<String, Object>> dataList = (List<Map<String, Object>>) json.get("data");
                 if (dataList.size() > 0) {
                     Data data = jsonToData(dataList.get(0));
-                    return new User(data);
+                    return new SampleUser(data);
                 } else
                     return null;
             } else
@@ -40,7 +40,7 @@ public class BucketUsers extends Bucket {
             throw new RuntimeException(getErrorMessage(rr));
     }
 
-    public User getUser(Rules rules, List<String> fields) {
+    public SampleUser getUser(Rules rules, List<String> fields) {
         RequestResponse rr = getData(rules, fields);
         System.out.println("Request headers: \n" + getPrettyHeaders(rr.getRequestHeaders()));
         System.out.println("Request body: \n" + getPrettyBody(rr.getRequestBody()));
@@ -52,7 +52,7 @@ public class BucketUsers extends Bucket {
                 List<Map<String, Object>> dataList = (List<Map<String, Object>>) json.get("customData");
                 if (dataList.size() > 0) {
                     Data data = customJsonToData(dataList.get(0));
-                    return new User(data);
+                    return new SampleUser(data);
                 } else
                     return null;
             } else
@@ -61,33 +61,33 @@ public class BucketUsers extends Bucket {
             throw new RuntimeException(getErrorMessage(rr));
     }
 
-    public User reserveUser(Rules rules) {
+    public SampleUser reserveUser(Rules rules) {
         RequestResponse rr = reserveData(rules, true);
         if (rr.isResponseCorrect()) {
             Data data = strToData(rr.getResponseBody());
-            return new User(data);
+            return new SampleUser(data);
         } else
             throw new RuntimeException(getErrorMessage(rr));
     }
 
-    public User insertUser(User user) {
+    public SampleUser insertUser(SampleUser user) {
         RequestResponse rr = insertData(user);
         if (rr.isResponseCorrect()) {
             Data data = strToData(rr.getResponseBody());
-            return new User(data);
+            return new SampleUser(data);
         } else
             throw new RuntimeException(getErrorMessage(rr));
     }
 
-    public void insertMultiUser(List<User> userList) {
+    public void insertMultiUser(List<SampleUser> userList) {
         insertMultiData(userList);
     }
 
-    public User updateUser(User user) {
+    public SampleUser updateUser(SampleUser user) {
         RequestResponse rr = updateData(user);
         if (rr.isResponseCorrect()) {
             Data data = strToData(rr.getResponseBody());
-            return new User(data);
+            return new SampleUser(data);
         } else
             throw new RuntimeException(getErrorMessage(rr));
     }

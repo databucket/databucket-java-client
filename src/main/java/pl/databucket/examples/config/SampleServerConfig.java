@@ -1,6 +1,6 @@
 package pl.databucket.examples.config;
 
-public class ServerConfig {
+public class SampleServerConfig {
 
     /**
      * If you don't have any data.user yet:

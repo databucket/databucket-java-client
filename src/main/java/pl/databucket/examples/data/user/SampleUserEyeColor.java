@@ -2,7 +2,7 @@ package pl.databucket.examples.data.user;
 
 import pl.databucket.client.PropertyEnum;
 
-public enum UserEyeColor implements PropertyEnum {
+public enum SampleUserEyeColor implements PropertyEnum {
     BLUE("blue"),
     BLACK("black"),
     GREEN("green"),
@@ -10,7 +10,7 @@ public enum UserEyeColor implements PropertyEnum {
 
     private final String colorName;
 
-    UserEyeColor(final String newValue) {
+    SampleUserEyeColor(final String newValue) {
         colorName = newValue;
     }
 
