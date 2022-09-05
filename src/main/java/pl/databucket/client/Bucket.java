@@ -15,8 +15,8 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public class Bucket {
 
-    private final Databucket databucket;
-    private final String bucketName;
+    protected final Databucket databucket;
+    protected final String bucketName;
     protected final Gson gson;
 
     public Bucket(Databucket databucket, String bucketName) {
