@@ -76,7 +76,7 @@ public class Data {
 	
 	public void deleteProperty(String propertyPath) {
 		if (this.properties != null) {
-			removeValueByPath(this.properties, propertyPath);
+			removeValueByPath(this.properties, propertyPath.replace("$.", ""));
 		}
 	}
 	

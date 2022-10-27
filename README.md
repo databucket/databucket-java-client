@@ -5,6 +5,6 @@ Java client for Databucket 3
 <dependency>
   <groupId>pl.databucket</groupId>
   <artifactId>databucket-client</artifactId>
-  <version>1.0.13</version>
+  <version>1.0.14</version>
 </dependency>
 ```
