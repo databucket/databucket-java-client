@@ -1,4 +1,4 @@
-package pl.databucket.examples.data.user;
+package pl.databucket.examples.base;
 
 import pl.databucket.client.PropertyEnum;
 
@@ -15,7 +15,7 @@ public enum SampleUserEyeColor implements PropertyEnum {
     }
 
     @Override
-    public Object getValue() {
+    public String getValue() {
         return colorName;
     }
 }

@@ -1,6 +1,6 @@
-package pl.databucket.examples.config;
+package pl.databucket.examples;
 
-public class SampleServerConfig {
+public class Config {
 
     /**
      * If you don't have any data.user yet:
@@ -8,9 +8,9 @@ public class SampleServerConfig {
      */
 
     public static final String SERVER_URL = "https://databucket.pl/app";
-    public static final String USER_NAME = "your-user-name";
-    public static final String PASSWORD = "password";
+    public static final String USER_NAME = "kslysz";
+    public static final String PASSWORD = "Corrse099!";
     public static final int PROJECT_ID = 1;
-    public static final boolean DEBUG_LOG = false;
+    public static final boolean DEBUG_LOG = true;
 
 }

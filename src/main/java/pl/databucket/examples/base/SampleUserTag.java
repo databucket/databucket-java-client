@@ -1,4 +1,4 @@
-package pl.databucket.examples.data.user;
+package pl.databucket.examples.base;
 
 public enum SampleUserTag {
     GOOD(1),

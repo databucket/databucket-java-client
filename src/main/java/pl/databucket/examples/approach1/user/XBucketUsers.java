@@ -1,20 +1,21 @@
-package pl.databucket.examples.data.user;
+package pl.databucket.examples.approach1.user;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import pl.databucket.client.*;
+import pl.databucket.client.Data;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class SampleBucketUsers extends Bucket {
+public class XBucketUsers extends Bucket {
 
     private final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-    public SampleBucketUsers(Databucket databucket, String bucketName) {
+    public XBucketUsers(Databucket databucket, String bucketName) {
         super(databucket, bucketName);
     }
 
@@ -22,8 +23,7 @@ public class SampleBucketUsers extends Bucket {
         return "Response status: " + rr.getResponseStatus() + "\n\n" + rr.getResponseBody();
     }
 
-
-    public SampleUser getUser(Rules rules) {
+    public XUser getUser(Rules rules) {
         RequestResponse rr = getData(rules);
         if (rr.isResponseCorrect()) {
             Map<String, Object> json = strToJson(rr.getResponseBody());
@@ -31,7 +31,7 @@ public class SampleBucketUsers extends Bucket {
                 List<Map<String, Object>> dataList = (List<Map<String, Object>>) json.get("data");
                 if (dataList.size() > 0) {
                     Data data = jsonToData(dataList.get(0));
-                    return new SampleUser(data);
+                    return new XUser(data);
                 } else
                     return null;
             } else
@@ -40,19 +40,15 @@ public class SampleBucketUsers extends Bucket {
             throw new RuntimeException(getErrorMessage(rr));
     }
 
-    public SampleUser getUser(Rules rules, List<String> fields) {
+    public XUser getUser(Rules rules, List<String> fields) {
         RequestResponse rr = getData(rules, fields);
-        System.out.println("Request headers: \n" + getPrettyHeaders(rr.getRequestHeaders()));
-        System.out.println("Request body: \n" + getPrettyBody(rr.getRequestBody()));
-        System.out.println("Response headers: \n" + getPrettyHeaders(rr.getResponseHeaders()));
-        System.out.println("Response body: \n" + getPrettyBody(rr.getResponseBody()));
         if (rr.isResponseCorrect()) {
             Map<String, Object> json = strToJson(rr.getResponseBody());
             if (json.containsKey("customData")) {
                 List<Map<String, Object>> dataList = (List<Map<String, Object>>) json.get("customData");
                 if (dataList.size() > 0) {
                     Data data = customJsonToData(dataList.get(0));
-                    return new SampleUser(data);
+                    return new XUser(data);
                 } else
                     return null;
             } else
@@ -61,51 +57,35 @@ public class SampleBucketUsers extends Bucket {
             throw new RuntimeException(getErrorMessage(rr));
     }
 
-    public SampleUser reserveUser(Rules rules) {
+    public XUser reserveUser(Rules rules) {
         RequestResponse rr = reserveData(rules, true);
         if (rr.isResponseCorrect()) {
             Data data = strToData(rr.getResponseBody());
-            return new SampleUser(data);
+            return new XUser(data);
         } else
             throw new RuntimeException(getErrorMessage(rr));
     }
 
-    public SampleUser insertUser(SampleUser user) {
+    public XUser insertUser(XUser user) {
         RequestResponse rr = insertData(user);
         if (rr.isResponseCorrect()) {
             Data data = strToData(rr.getResponseBody());
-            return new SampleUser(data);
+            return new XUser(data);
         } else
             throw new RuntimeException(getErrorMessage(rr));
     }
 
-    public void insertMultiUser(List<SampleUser> userList) {
+    public void insertMultiUser(List<XUser> userList) {
         insertMultiData(userList);
     }
 
-    public SampleUser updateUser(SampleUser user) {
+    public XUser updateUser(XUser user) {
         RequestResponse rr = updateData(user);
         if (rr.isResponseCorrect()) {
             Data data = strToData(rr.getResponseBody());
-            return new SampleUser(data);
+            return new XUser(data);
         } else
             throw new RuntimeException(getErrorMessage(rr));
-    }
-
-    public String getResponseDurationStr(long duration) {
-        long min = (duration / 1000) / 60;
-        long sec = (duration / 1000) % 60;
-        long ms = duration % 1000;
-
-        String result = "";
-        if (min > 0)
-            result += min + " min ";
-        if (sec > 0)
-            result += sec + " sec ";
-        if (ms > 0)
-            result += ms + " ms";
-
-        return result;
     }
 
     private String getPrettyHeaders(MultivaluedMap<String, String> headers) {

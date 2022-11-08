@@ -1,19 +1,21 @@
-package pl.databucket.examples.data.user;
+package pl.databucket.examples.approach1.user;
 
 import pl.databucket.client.Data;
+import pl.databucket.examples.base.SampleUserTag;
+import pl.databucket.examples.base.SampleUserEyeColor;
 
-public class SampleUser extends Data {
+public class XUser extends Data {
 
     // User properties
     public static final String EYE_COLOR = "$.eyeColor";
     public static final String EMAIL = "$.contact.email";
     public static final String NUMBER = "$.number";
 
-    public SampleUser() {
+    public XUser() {
         super(new Data());
     }
 
-    public SampleUser(Data data) {
+    public XUser(Data data) {
         super(data);
     }
 
