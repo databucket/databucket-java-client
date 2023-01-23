@@ -25,19 +25,19 @@ public class ExampleApproach2 {
 
     private void run() {
         // insert a new data.user
-//        YUser user = bucketUsers.insertUser(YUser.builder()
-//                .tagId(SampleUserTag.GOOD.id())
-//                .reserved(false)
-//                .properties(YUserProperties.builder()
-//                        .eyeColor(SampleUserEyeColor.GREEN.getValue())
-//                        .number(101)
-//                        .contact(YUserContact.builder()
-//                                .email("test@test.io")
-//                                .phone("111222333")
-//                                .build())
-//                        .build())
-//                .build());
-//        System.out.println("userId: " + user.getId());
+        YUser user = bucketUsers.insertUser(YUser.builder()
+                .tagId(SampleUserTag.GOOD.id())
+                .reserved(false)
+                .properties(YUserProperties.builder()
+                        .eyeColor(SampleUserEyeColor.GREEN.getValue())
+                        .number(101)
+                        .contact(YUserContact.builder()
+                                .email("test@test.io")
+                                .phone("111222333")
+                                .build())
+                        .build())
+                .build());
+        System.out.println("userId: " + user.getId());
 
 
          //insert a new multi user
@@ -74,25 +74,25 @@ public class ExampleApproach2 {
 //        bucketUsers.insertMultiUser(userList);
 
         // modify data.user
-//        user = bucketUsers.updateUser(user.toBuilder()
-//                .tagId(SampleUserTag.TRASH.id())
-//                        .properties(YUserProperties.builder()
-//                                .eyeColor(SampleUserEyeColor.GREY.getValue())
-//                                .build())
-//                .reserved(false)
-//                .build());
+        user = bucketUsers.updateUser(user.toBuilder()
+                .tagId(SampleUserTag.TRASH.id())
+                        .properties(YUserProperties.builder()
+                                .eyeColor(SampleUserEyeColor.GREY.getValue())
+                                .build())
+                .reserved(false)
+                .build());
 
         // rules def
-//        Rules rules = new Rules();
-//        rules.addRule("$.email", Operator.like, "%email%");
-//        rules.addRule("id", Operator.graterEqual, 0);
-//
-//        List<CustomDataDef> customDataDefList = new ArrayList<>();
-//        customDataDefList.add(new CustomDataDef("id", "id"));
-//        customDataDefList.add(new CustomDataDef("name", "$.name"));
+        Rules rules = new Rules();
+        rules.addRule("$.email", Operator.like, "%email%");
+        rules.addRule("id", Operator.graterEqual, 0);
+
+        List<CustomDataDef> customDataDefList = new ArrayList<>();
+        customDataDefList.add(new CustomDataDef("id", "id"));
+        customDataDefList.add(new CustomDataDef("name", "$.name"));
 
         // get data.user by rules
-//        Map<String, Object> map = bucketUsers.getUser(rules, customDataDefList);
+        Map<String, Object> map = bucketUsers.getUser(rules, customDataDefList);
 
 //        // reserve data.user by rules
 //        YUser user = bucketUsers.reserveUser(rules);

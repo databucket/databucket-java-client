@@ -5,7 +5,7 @@
 
     <groupId>pl.databucket</groupId>
     <artifactId>databucket-client</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
 
     <name>Databucket Client</name>
@@ -122,10 +122,25 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.sun.jersey</groupId>
+            <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>1.19.4</version>
+            <version>3.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>jakarta.activation</groupId>-->
+<!--            <artifactId>jakarta.activation-api</artifactId>-->
+<!--            <version>2.1.1</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>

@@ -2,11 +2,12 @@ package pl.databucket.client;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -25,7 +26,7 @@ public class Bucket {
         gson = new GsonBuilder().disableHtmlEscaping().create();
     }
 
-    private void setHeaders(WebResource.Builder builder) {
+    private void setHeaders(Invocation.Builder builder) {
         for (Map.Entry<String, List<String>> entry : databucket.getHeaders().entrySet()) {
             String value = entry.getValue().toString();
             builder = builder.header(entry.getKey(), value.substring(1, value.length() - 1));
@@ -43,8 +44,8 @@ public class Bucket {
         if (data.getProperties() != null)
             json.put(Field.PROPERTIES, data.getProperties());
 
-        WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s", bucketName)));
-        WebResource.Builder builder = webResource.getRequestBuilder();
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s", bucketName)));
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
         String payload = gson.toJson(json);
@@ -53,15 +54,15 @@ public class Bucket {
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
         requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webResource.getURI().toString());
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
 
         long start = System.currentTimeMillis();
         try {
-            ClientResponse response = builder.post(ClientResponse.class, payload);
+            Response response = builder.post(Entity.json(json));
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 201);
             requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.getEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
@@ -72,9 +73,9 @@ public class Bucket {
         return requestResponse;
     }
 
-    public RequestResponse insertMultiData(List<? extends Data> dataList) {
-        WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s/multi", bucketName)));
-        WebResource.Builder builder = webResource.getRequestBuilder();
+    public RequestResponse insertMultiData(List<? extends Data> dataList) {      
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/multi", bucketName)));
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
         String payload = gson.toJson(dataList);
@@ -83,15 +84,15 @@ public class Bucket {
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
         requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webResource.getURI().toString());
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
 
         long start = System.currentTimeMillis();
         try {
-            ClientResponse response = builder.post(ClientResponse.class, payload);
+            Response response = builder.post(Entity.json(dataList));
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 201);
             requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.getEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
@@ -111,18 +112,15 @@ public class Bucket {
     }
 
     public RequestResponse getData(Rules rules, boolean random, List<String> fields) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-        queryParams.add("limit", "1");
-        if (random)
-            queryParams.add("sort", "random");
-
         Map<String, Object> json = new HashMap<>();
         json.put("columns", fieldsToColumns(fields));
         json.put("rules", rules.toNativeObject());
 
-        WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
-        webResource = webResource.queryParams(queryParams);
-        WebResource.Builder builder = webResource.getRequestBuilder();
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
+        webTarget.queryParam("limit", "1");
+            if (random)
+                webTarget.queryParam("sort", "random");
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
         String payload = gson.toJson(json);
@@ -131,15 +129,15 @@ public class Bucket {
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
         requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webResource.getURI().toString());
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
 
         long start = System.currentTimeMillis();
         try {
-            ClientResponse response = builder.post(ClientResponse.class, payload);
+            Response response = builder.post(Entity.json(json));
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.getEntity(String.class));
+             requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
@@ -151,22 +149,22 @@ public class Bucket {
     }
 
     public RequestResponse getData(Long id) {
-        WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s/%d", bucketName, id)));
-        WebResource.Builder builder = webResource.getRequestBuilder();
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/%d", bucketName, id)));
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("GET");
         requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestUrl(webResource.getURI().toString());
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
 
         long start = System.currentTimeMillis();
         try {
-            ClientResponse response = builder.get(ClientResponse.class);
+            Response response = builder.get();
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.getEntity(String.class));
+             requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
@@ -182,14 +180,11 @@ public class Bucket {
     }
 
     public RequestResponse getData(Rules rules, boolean random) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-        queryParams.add("limit", "1");
-        if (random)
-            queryParams.add("sort", "random");
-
-        WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
-        webResource = webResource.queryParams(queryParams);
-        WebResource.Builder builder = webResource.getRequestBuilder();
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
+        webTarget.queryParam("limit", "1");
+            if (random)
+                webTarget.queryParam("sort", "random");
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
         Map<String, Object> json = new HashMap<>();
@@ -201,15 +196,15 @@ public class Bucket {
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
         requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webResource.getURI().toString());
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
 
         long start = System.currentTimeMillis();
         try {
-            ClientResponse response = builder.post(ClientResponse.class, payload);
+            Response response = builder.post(Entity.json(json));
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.getEntity(String.class));
+             requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
@@ -221,14 +216,11 @@ public class Bucket {
     }
 
     public RequestResponse reserveData(Rules rules, boolean random) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-        queryParams.add("limit", "1");
-        if (random)
-            queryParams.add("sort", "random");
-
-        WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s/reserve", bucketName)));
-        webResource = webResource.queryParams(queryParams);
-        WebResource.Builder builder = webResource.getRequestBuilder();
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/reserve", bucketName)));
+        webTarget.queryParam("limit", "1");
+            if (random)
+                webTarget.queryParam("sort", "random");
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
         Map<String, Object> json = new HashMap<>();
@@ -240,15 +232,15 @@ public class Bucket {
         requestResponse.setRequestMethod("POST");
         requestResponse.setRequestHeaders(databucket.getHeaders());
         requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webResource.getURI().toString());
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
 
         long start = System.currentTimeMillis();
         try {
-            ClientResponse response = builder.post(ClientResponse.class, payload);
+            Response response = builder.post(Entity.json(json));
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.getEntity(String.class));
+             requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
@@ -270,8 +262,8 @@ public class Bucket {
         if (data.getProperties() != null)
             json.put("properties", data.getProperties());
 
-        WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s/%d", bucketName, data.getId())));
-        WebResource.Builder builder = webResource.getRequestBuilder();
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/%d", bucketName, data.getId())));
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
         String payload = gson.toJson(json);
@@ -280,15 +272,15 @@ public class Bucket {
         requestResponse.setRequestMethod("PUT");
         requestResponse.setRequestHeaders(databucket.getHeaders());
         requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webResource.getURI().toString());
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
 
         long start = System.currentTimeMillis();
         try {
-            ClientResponse response = builder.put(ClientResponse.class, payload);
+            Response response = builder.put(Entity.json(data));
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.getEntity(String.class));
+             requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
@@ -300,23 +292,23 @@ public class Bucket {
     }
 
     public RequestResponse deleteData(Data data) {
-        WebResource webResource = databucket.getClient().resource(databucket.buildUrl(String.format("/api/bucket/%s/%d", bucketName, data.getId())));
-        WebResource.Builder builder = webResource.getRequestBuilder();
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/%d", bucketName, data.getId())));
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("DELETE");
         requestResponse.setRequestHeaders(databucket.getHeaders());
         requestResponse.setRequestBody(null);
-        requestResponse.setRequestUrl(webResource.getURI().toString());
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
 
         long start = System.currentTimeMillis();
         try {
-            ClientResponse response = builder.delete(ClientResponse.class);
+            Response response = builder.delete();
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 201);
             requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.getEntity(String.class));
+             requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);

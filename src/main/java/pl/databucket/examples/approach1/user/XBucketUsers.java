@@ -4,10 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import jakarta.ws.rs.core.MultivaluedMap;
 import pl.databucket.client.*;
 import pl.databucket.client.Data;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 import java.util.Map;
 

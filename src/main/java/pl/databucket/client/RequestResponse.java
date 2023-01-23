@@ -1,8 +1,13 @@
 package pl.databucket.client;
 
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.Getter;
 import lombok.Setter;
-import javax.ws.rs.core.MultivaluedMap;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -15,8 +20,9 @@ public class RequestResponse {
 
     private Integer responseStatus;
     private Long responseDuration;
-    private MultivaluedMap<String, String> responseHeaders;
+    private MultivaluedMap<String, Object> responseHeaders;
     private String responseBody;
     private boolean responseCorrect;
     private Exception exception;
+
 }

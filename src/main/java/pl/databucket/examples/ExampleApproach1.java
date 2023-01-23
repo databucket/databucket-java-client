@@ -49,32 +49,31 @@ public class ExampleApproach1 {
 //        bucketUsers.insertMultiUser(userList);
 
         // modify data.user
-//        XUser user = new XUser();
 //        user.setTag(SampleUserTag.TRASH);
 //        user.setReserved(false);
 //        user = bucketUsers.updateUser(user);
 
         // rules def
-//        Rules nestedRules = new Rules(LogicalOperator.or);
-//        nestedRules.addRule(XUser.EMAIL, Operator.like, "%email%");
-//        nestedRules.addRule("id", Operator.graterEqual, 0);
-//
-//        Rules rules = new Rules();
-//        rules.addRule(SampleUserRules.goodUser());
-//        rules.addRule(XUser.EYE_COLOR, Operator.equal, SampleUserEyeColor.BLUE);
-//        rules.addRule(XUser.NUMBER, Operator.notEqual, XUserNumber.ONE);
-//        rules.addNestedRules(nestedRules);
-//
-//        List<String> fields = new ArrayList<>();
-//        fields.add(Field.ID);
-//        fields.add(XUser.EMAIL);
-//        fields.add(XUser.EYE_COLOR);
-//
-//        // get data.user by rules
-//        XUser user = bucketUsers.getUser(rules, fields);
-//
-//        // reserve data.user by rules
-//        user = bucketUsers.reserveUser(rules);
+        Rules nestedRules = new Rules(LogicalOperator.or);
+        nestedRules.addRule(XUser.EMAIL, Operator.like, "%email%");
+        nestedRules.addRule("id", Operator.graterEqual, 0);
+
+        Rules rules = new Rules();
+        rules.addRule(SampleUserRules.goodUser());
+        rules.addRule(XUser.EYE_COLOR, Operator.equal, SampleUserEyeColor.BLUE);
+        rules.addRule(XUser.NUMBER, Operator.notEqual, XUserNumber.ONE);
+        rules.addNestedRules(nestedRules);
+
+        List<String> fields = new ArrayList<>();
+        fields.add(Field.ID);
+        fields.add(XUser.EMAIL);
+        fields.add(XUser.EYE_COLOR);
+
+        // get data.user by rules
+        XUser user = bucketUsers.getUser(rules, fields);
+
+        // reserve data.user by rules
+        user = bucketUsers.reserveUser(rules);
 
     }
 
