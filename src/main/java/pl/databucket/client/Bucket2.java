@@ -5,7 +5,6 @@ import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.glassfish.jersey.client.ClientResponse;
 
 import java.text.DateFormat;
 import java.text.ParseException;

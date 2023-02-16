@@ -1,6 +1,5 @@
 package pl.databucket.client;
 
-import java.net.Proxy;
 import java.util.List;
 import java.util.Map;
 
@@ -16,8 +15,8 @@ import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 public class Databucket {
 
     private final String serviceUrl;
-    private final Client client;
-    private final MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+    private Client client;
+    private MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
 
     public Databucket(String serviceUrl, boolean logs) {
         this.serviceUrl = serviceUrl;
@@ -27,11 +26,11 @@ public class Databucket {
         addBaseHeaders();
     }
 
-    public Databucket(String serviceUrl, boolean logs, Proxy proxy) {
+    public Databucket(String serviceUrl, boolean logs, String proxyUri) {
         this.serviceUrl = serviceUrl;
 
         ClientConfig config = new ClientConfig();
-        config.property(ClientProperties.PROXY_URI, proxy.toString());
+        config.property(ClientProperties.PROXY_URI, proxyUri);
 
         client = ClientBuilder.newClient(config)
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
@@ -55,11 +54,11 @@ public class Databucket {
                 .build());
     }
 
-    public Databucket(String serviceUrl, String username, String password, Integer projectId, boolean logs, Proxy proxy) {
+    public Databucket(String serviceUrl, String username, String password, Integer projectId, boolean logs, String proxyUri) {
         this.serviceUrl = serviceUrl;
 
         ClientConfig config = new ClientConfig();
-        config.property(ClientProperties.PROXY_URI, proxy.toString());
+        config.property(ClientProperties.PROXY_URI, proxyUri);
 
         client = ClientBuilder.newClient(config)
                 .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
@@ -75,6 +74,9 @@ public class Databucket {
                 .build());
     }
 
+    public void setClient(Client newClient) {
+        client = newClient;
+    }
     public Client getClient() {
         return client;
     }
@@ -85,9 +87,12 @@ public class Databucket {
 
     private void addBaseHeaders() {
         headers.putSingle("User-Agent", "api-client");
-//        headers.putSingle("Content-Type", "application/json");
+        headers.putSingle("Content-Type", "application/json");
     }
 
+    public void setHeaders(MultivaluedMap<String, String> newHeaders) {
+        headers = newHeaders;
+    }
     public MultivaluedMap<String, String> getHeaders() {
         return headers;
     }
