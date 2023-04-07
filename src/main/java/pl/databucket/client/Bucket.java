@@ -251,6 +251,61 @@ public class Bucket {
         return requestResponse;
     }
 
+    public RequestResponse updateData(
+            Rules rules,
+            Boolean reserved,
+            Integer tagId,
+            Map<String, Object> properties,
+            Map<String, Object> propertiesToSet,
+            List<String> propertiesToRemove) {
+
+        Map<String, Object> json = new HashMap<>();
+        json.put("rules", rules.toNativeObject());
+
+        if (reserved != null)
+            json.put(Field.RESERVED, reserved);
+
+        if (tagId != null)
+            json.put(Field.TAG_ID, tagId);
+
+        if (properties != null)
+            json.put("properties", properties);
+
+        if (propertiesToSet != null)
+            json.put("propertiesToSet", propertiesToSet);
+
+        if (propertiesToRemove != null)
+            json.put("propertiesToRemove", propertiesToRemove);
+
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s", bucketName)));
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
+        setHeaders(builder);
+
+        String payload = gson.toJson(json);
+
+        RequestResponse requestResponse = new RequestResponse();
+        requestResponse.setRequestMethod("PUT");
+        requestResponse.setRequestHeaders(databucket.getHeaders());
+        requestResponse.setRequestBody(payload);
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
+
+        long start = System.currentTimeMillis();
+        try {
+            Response response = builder.put(Entity.json(json));
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 200);
+            requestResponse.setResponseHeaders(response.getHeaders());
+             requestResponse.setResponseBody(response.readEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+        }
+
+        return requestResponse;
+    }
+
     public RequestResponse updateData(Data data) {
         Map<String, Object> json = new HashMap<>();
         if (data.getReserved() != null)
@@ -280,7 +335,7 @@ public class Bucket {
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-             requestResponse.setResponseBody(response.readEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
