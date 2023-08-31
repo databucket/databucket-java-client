@@ -77,11 +77,13 @@ public class ExampleApproach1 {
 
 
         Rules rules = new Rules();
-        rules.addRule(SampleUserRules.goodUser());
-//        rules.addRule(XUser.EYE_COLOR, Operator.equal, SampleUserEyeColor.BLUE);
+//        rules.addRule(new Rule(Field.TAG_ID, Operator.equal, SampleUserTag.TRASH.id()));
+        rules.addRule(new Rule(Field.RESERVED, Operator.equal, true));
+//        rules.addRule(SampleUserRules.goodUser());
+        rules.addRule(XUser.EYE_COLOR, Operator.equal, SampleUserEyeColor.BLUE);
 //        rules.addRule(XUser.NUMBER, Operator.notEqual, XUserNumber.ONE);
 
-        bucketUsers.updateData(rules, true, 1, null, null, null);
+        bucketUsers.updateData(rules, false, null, null, null, null);
 
     }
 
