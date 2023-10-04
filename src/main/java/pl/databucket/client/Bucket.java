@@ -7,6 +7,7 @@ import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import lombok.Getter;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -14,10 +15,11 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SuppressWarnings("unchecked")
+@Getter
 public class Bucket {
 
-    protected final Databucket databucket;
-    protected final String bucketName;
+    public final Databucket databucket;
+    public final String bucketName;
     protected final Gson gson;
 
     public Bucket(Databucket databucket, String bucketName) {
