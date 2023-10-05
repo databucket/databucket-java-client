@@ -1,5 +1,7 @@
 package pl.databucket.client;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +10,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
@@ -72,6 +76,15 @@ public class Databucket {
                 .password(password)
                 .projectId(projectId)
                 .build());
+    }
+
+    public Header[] getHeaders2() {
+        List<Header> headerList = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            String value = entry.getValue().toString();
+            headerList.add(new BasicHeader(entry.getKey(), value.substring(1, value.length() - 1)));
+        }
+        return headerList.toArray(new Header[headers.size()]);
     }
 
     public void setClient(Client newClient) {
