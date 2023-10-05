@@ -114,12 +114,16 @@ public class Bucket {
     }
 
     public RequestResponse getData(Rules rules, boolean random, List<String> fields) {
+        return getData(rules, random, fields, 1L);
+    }
+
+    public RequestResponse getData(Rules rules, boolean random, List<String> fields, Long limit) {
         Map<String, Object> json = new HashMap<>();
         json.put("columns", fieldsToColumns(fields));
         json.put("rules", rules.toNativeObject());
 
         WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
-        webTarget.queryParam("limit", "1");
+        webTarget.queryParam("limit", limit);
             if (random)
                 webTarget.queryParam("sort", "random");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
@@ -366,6 +370,34 @@ public class Bucket {
             requestResponse.setResponseCorrect(response.getStatus() == 201);
             requestResponse.setResponseHeaders(response.getHeaders());
              requestResponse.setResponseBody(response.readEntity(String.class));
+        } catch (Exception e) {
+            requestResponse.setResponseCorrect(false);
+            requestResponse.setException(e);
+        } finally {
+            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+        }
+
+        return requestResponse;
+    }
+
+    public RequestResponse deleteData(String ids) {
+        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/%s", bucketName, ids)));
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
+        setHeaders(builder);
+
+        RequestResponse requestResponse = new RequestResponse();
+        requestResponse.setRequestMethod("DELETE");
+        requestResponse.setRequestHeaders(databucket.getHeaders());
+        requestResponse.setRequestBody(null);
+        requestResponse.setRequestUrl(webTarget.getUri().toString());
+
+        long start = System.currentTimeMillis();
+        try {
+            Response response = builder.delete();
+            requestResponse.setResponseStatus(response.getStatus());
+            requestResponse.setResponseCorrect(response.getStatus() == 201);
+            requestResponse.setResponseHeaders(response.getHeaders());
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
