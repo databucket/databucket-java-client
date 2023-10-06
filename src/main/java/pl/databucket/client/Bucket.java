@@ -427,8 +427,6 @@ public class Bucket {
 
         String url = databucket.buildUrl(String.format("/api/bucket/%s", bucketName));
 
-        HttpClient client = HttpClientBuilder.create().build();
-
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setRequestMethod("DELETE");
         requestResponse.setRequestHeaders(databucket.getHeaders());
@@ -442,7 +440,7 @@ public class Bucket {
             HttpEntityDelete httpEntityDelete = new HttpEntityDelete(url);
             httpEntityDelete.setHeaders(databucket.getHeaders2());
             httpEntityDelete.setEntity(entity);
-            HttpResponse response = client.execute(httpEntityDelete);
+            HttpResponse response = databucket.getHttpClient().execute(httpEntityDelete);
 
             String content = new BufferedReader(
                     new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))

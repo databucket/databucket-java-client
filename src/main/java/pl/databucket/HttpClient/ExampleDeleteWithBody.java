@@ -1,6 +1,7 @@
 package pl.databucket.HttpClient;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.ContentType;
@@ -16,7 +17,8 @@ import java.util.stream.Collectors;
 
 public class ExampleDeleteWithBody {
 
-    Databucket databucket = new Databucket("https://...", "...", "...", 1, true);
+    HttpHost proxy = new HttpHost("...", 0, "http");
+    Databucket databucket = new Databucket("...", "...", "...", 1, true, proxy);
 
     public static void main(String[] args) {
         new ExampleDeleteWithBody().run();
@@ -24,10 +26,11 @@ public class ExampleDeleteWithBody {
 
     private void run() {
         Rules rules = new Rules();
-        rules.addRule(new Rule("id", Operator.less, 4535));
+        rules.addRule(new Rule("id", Operator.less, 4539));
 
-        Bucket glTestSchedulerBucket = new Bucket(databucket,"gl-test-scheduler");
-        glTestSchedulerBucket.deleteData(rules);
+        Bucket glTestSchedulerBucket = new Bucket(databucket,"....");
+        RequestResponse requestResponse = glTestSchedulerBucket.deleteData(rules);
+        System.out.println(requestResponse.getResponseBody());
 
 //        HttpClient client = HttpClientBuilder.create().build();
 //        HttpResponse response = null;
