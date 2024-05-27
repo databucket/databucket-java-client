@@ -66,7 +66,7 @@ public class Bucket2 {
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 201);
             requestResponse.setResponseHeaders(response.getHeaders());
-             requestResponse.setResponseBody(response.readEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
@@ -102,7 +102,7 @@ public class Bucket2 {
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 201);
             requestResponse.setResponseHeaders(response.getHeaders());
-             requestResponse.setResponseBody(response.readEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
@@ -127,9 +127,9 @@ public class Bucket2 {
         json.put("rules", rules.toNativeObject());
 
         WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
-        webTarget.queryParam("limit", "1");
-            if (random)
-                webTarget.queryParam("sort", "random");
+        webTarget = webTarget.queryParam("limit", "1");
+        if (random)
+            webTarget = webTarget.queryParam("sort", "random");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
@@ -152,12 +152,12 @@ public class Bucket2 {
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-             requestResponse.setResponseBody(response.readEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
         } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
         }
 
         return requestResponse;
@@ -179,12 +179,12 @@ public class Bucket2 {
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-             requestResponse.setResponseBody(response.readEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
         } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
         }
 
         return requestResponse;
@@ -196,9 +196,9 @@ public class Bucket2 {
 
     public RequestResponse getData(Rules rules, boolean random) {
         WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
-        webTarget.queryParam("limit", "1");
-            if (random)
-                webTarget.queryParam("sort", "random");
+        webTarget = webTarget.queryParam("limit", "1");
+        if (random)
+            webTarget = webTarget.queryParam("sort", "random");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
@@ -224,12 +224,12 @@ public class Bucket2 {
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-             requestResponse.setResponseBody(response.readEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
         } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
         }
 
         return requestResponse;
@@ -237,9 +237,9 @@ public class Bucket2 {
 
     public RequestResponse reserveData(Rules rules, boolean random) {
         WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/reserve", bucketName)));
-        webTarget.queryParam("limit", "1");
-            if (random)
-                webTarget.queryParam("sort", "random");
+        webTarget = webTarget.queryParam("limit", "1");
+        if (random)
+            webTarget = webTarget.queryParam("sort", "random");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
@@ -265,12 +265,12 @@ public class Bucket2 {
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-             requestResponse.setResponseBody(response.readEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
         } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
         }
 
         return requestResponse;
@@ -330,7 +330,7 @@ public class Bucket2 {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
         } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
         }
 
         return requestResponse;
@@ -370,12 +370,12 @@ public class Bucket2 {
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 200);
             requestResponse.setResponseHeaders(response.getHeaders());
-             requestResponse.setResponseBody(response.readEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
         } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
         }
 
         return requestResponse;
@@ -398,12 +398,12 @@ public class Bucket2 {
             requestResponse.setResponseStatus(response.getStatus());
             requestResponse.setResponseCorrect(response.getStatus() == 201);
             requestResponse.setResponseHeaders(response.getHeaders());
-             requestResponse.setResponseBody(response.readEntity(String.class));
+            requestResponse.setResponseBody(response.readEntity(String.class));
         } catch (Exception e) {
             requestResponse.setResponseCorrect(false);
             requestResponse.setException(e);
         } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis()-start);
+            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
         }
 
         return requestResponse;

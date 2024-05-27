@@ -134,9 +134,9 @@ public class Bucket {
         json.put("rules", rules.toNativeObject());
 
         WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
-        webTarget.queryParam("limit", limit);
+        webTarget = webTarget.queryParam("limit", limit);
         if (random)
-            webTarget.queryParam("sort", "random");
+            webTarget = webTarget.queryParam("sort", "random");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
@@ -198,9 +198,9 @@ public class Bucket {
 
     public RequestResponse getData(Rules rules, boolean random) {
         WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
-        webTarget.queryParam("limit", "1");
+        webTarget = webTarget.queryParam("limit", "1");
         if (random)
-            webTarget.queryParam("sort", "random");
+            webTarget = webTarget.queryParam("sort", "random");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
@@ -234,9 +234,9 @@ public class Bucket {
 
     public RequestResponse reserveData(Rules rules, boolean random) {
         WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/reserve", bucketName)));
-        webTarget.queryParam("limit", "1");
+        webTarget = webTarget.queryParam("limit", "1");
         if (random)
-            webTarget.queryParam("sort", "random");
+            webTarget = webTarget.queryParam("sort", "random");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         setHeaders(builder);
 
