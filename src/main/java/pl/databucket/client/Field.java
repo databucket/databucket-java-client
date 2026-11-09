@@ -1,13 +1,26 @@
 package pl.databucket.client;
 
-public class Field {
-	public static final String ID = "id";
-	public static final String TAG_ID = "tagId";
-	public static final String RESERVED = "reserved";
-	public static final String OWNER = "owner";
-	public static final String PROPERTIES = "properties";
-	public static final String CREATED_AT = "createdAt";
-	public static final String CREATED_BY = "createdBy";
-	public static final String MODIFIED_AT = "modifiedAt";
-	public static final String MODIFIED_BY = "modifiedBy";
+/**
+ * Fields of a data row that can be used in rules (besides properties such as {@code $.address.city}).
+ */
+public enum Field {
+    ID("id"),
+    TAG_ID("tagId"),
+    OWNER("owner"),
+    RESERVED("reserved"),
+    CREATED_BY("createdBy"),
+    CREATED_AT("createdAt"),
+    MODIFIED_BY("modifiedBy"),
+    MODIFIED_AT("modifiedAt");
+
+    private final String name;
+
+    Field(String name) {
+        this.name = name;
+    }
+
+    /** The name used by the API. */
+    public String apiName() {
+        return name;
+    }
 }

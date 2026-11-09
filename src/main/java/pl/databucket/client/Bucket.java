@@ -1,611 +1,296 @@
 package pl.databucket.client;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.client.Invocation;
-import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import lombok.Getter;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import pl.databucket.HttpClient.HttpEntityDelete;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
-@SuppressWarnings("unchecked")
-@Getter
-public class Bucket {
+/**
+ * The data of one bucket. Get it with {@link Databucket#bucket(String, Class)}.
+ *
+ * @param <T> type of the properties
+ */
+public final class Bucket<T> {
 
-    public final Databucket databucket;
-    public final String bucketName;
-    protected final Gson gson;
+    private static final Pattern NUMBER = Pattern.compile("\\d+");
 
-    public Bucket(Databucket databucket, String bucketName) {
+    private final Databucket databucket;
+    private final String name;
+    private final Class<T> type;
+    private final String path;
+
+    Bucket(Databucket databucket, String name, Class<T> type) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("The bucket name is empty");
         this.databucket = databucket;
-        this.bucketName = bucketName;
-        gson = new GsonBuilder().disableHtmlEscaping().create();
+        this.name = name;
+        this.type = type;
+        this.path = "/api/bucket/" + URLEncoder.encode(name, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
-    private void setHeaders(Invocation.Builder builder) {
-        for (Map.Entry<String, List<String>> entry : databucket.getHeaders().entrySet()) {
-            String value = entry.getValue().toString();
-            builder = builder.header(entry.getKey(), value.substring(1, value.length() - 1));
-        }
+    public String getName() {
+        return name;
     }
 
-    public RequestResponse insertData(Data data) {
-        Map<String, Object> json = new HashMap<>();
-        if (data.getReserved() != null)
-            json.put(Field.RESERVED, data.getReserved());
+    // ---------------------------------------------------------------- insert
 
+    /** Inserts a row and returns it with its id. */
+    public DataRow<T> insert(T properties) {
+        return insert(NewData.of(properties));
+    }
+
+    /** Inserts a row (with a tag or reserved) and returns it with its id. */
+    public DataRow<T> insert(NewData<T> data) {
+        return row(databucket.call("POST", path, newDataBody(data)));
+    }
+
+    /** Inserts many rows in one call (the rows are not returned; find them by rules). */
+    public void insertAll(Collection<T> properties) {
+        insertAllData(properties.stream().map(NewData::of).collect(Collectors.toList()));
+    }
+
+    /** Inserts many rows in one call (the rows are not returned; find them by rules). */
+    public void insertAllData(Collection<NewData<T>> data) {
+        if (data.isEmpty())
+            return;
+        List<Map<String, Object>> body = data.stream().map(this::newDataBody).collect(Collectors.toList());
+        databucket.call("POST", path + "/multi", body);
+    }
+
+    private Map<String, Object> newDataBody(NewData<T> data) {
+        Map<String, Object> body = new LinkedHashMap<>();
         if (data.getTagId() != null)
-            json.put(Field.TAG_ID, data.getTagId());
-
-        if (data.getProperties() != null)
-            json.put(Field.PROPERTIES, data.getProperties());
-
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s", bucketName)));
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
-
-        String payload = gson.toJson(json);
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("POST");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
-
-        long start = System.currentTimeMillis();
-        try {
-            Response response = builder.post(Entity.json(json));
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 201);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
-    }
-
-    public RequestResponse insertMultiData(List<? extends Data> dataList) {
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/multi", bucketName)));
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
-
-        String payload = gson.toJson(dataList);
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("POST");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
-
-        long start = System.currentTimeMillis();
-        try {
-            Response response = builder.post(Entity.json(dataList));
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 201);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
-    }
-
-    public RequestResponse getData(Long id, List<String> fields) {
-        return getData(new Rules(new Rule("id", Operator.equal, id)), fields);
-    }
-
-    public RequestResponse getData(Rules rules, List<String> fields) {
-        return getData(rules, true, fields);
-    }
-
-    public RequestResponse getData(Rules rules, boolean random, List<String> fields) {
-        return getData(rules, random, fields, 1L);
-    }
-
-    public RequestResponse getData(Rules rules, boolean random, List<String> fields, Long limit) {
-        Map<String, Object> json = new HashMap<>();
-        json.put("columns", fieldsToColumns(fields));
-        json.put("rules", rules.toNativeObject());
-
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
-        webTarget = webTarget.queryParam("limit", limit);
-        if (random)
-            webTarget = webTarget.queryParam("sort", "random");
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
-
-        String payload = gson.toJson(json);
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("POST");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
-
-        long start = System.currentTimeMillis();
-        try {
-            Response response = builder.post(Entity.json(json));
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 200);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
-    }
-
-    public RequestResponse getData(Long id) {
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/%d", bucketName, id)));
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("GET");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
-
-        long start = System.currentTimeMillis();
-        try {
-            Response response = builder.get();
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 200);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
-    }
-
-    public RequestResponse getData(Rules rules) {
-        return getData(rules, true);
-    }
-
-    public RequestResponse getData(Rules rules, boolean random) {
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/get", bucketName)));
-        webTarget = webTarget.queryParam("limit", "1");
-        if (random)
-            webTarget = webTarget.queryParam("sort", "random");
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
-
-        Map<String, Object> json = new HashMap<>();
-        json.put("rules", rules.toNativeObject());
-
-        String payload = gson.toJson(json);
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("POST");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
-
-        long start = System.currentTimeMillis();
-        try {
-            Response response = builder.post(Entity.json(json));
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 200);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
-    }
-
-    public RequestResponse reserveData(Rules rules, boolean random) {
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/reserve", bucketName)));
-        webTarget = webTarget.queryParam("limit", "1");
-        if (random)
-            webTarget = webTarget.queryParam("sort", "random");
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
-
-        Map<String, Object> json = new HashMap<>();
-        json.put("rules", rules.toNativeObject());
-
-        String payload = gson.toJson(json);
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("POST");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
-
-        long start = System.currentTimeMillis();
-        try {
-            Response response = builder.post(Entity.json(json));
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 200);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
-    }
-
-    public RequestResponse updateData(
-            Rules rules,
-            Boolean reserved,
-            Integer tagId,
-            Map<String, Object> properties,
-            Map<String, Object> propertiesToSet,
-            List<String> propertiesToRemove) {
-
-        Map<String, Object> json = new HashMap<>();
-        json.put("rules", rules.toNativeObject());
-
-        if (reserved != null)
-            json.put(Field.RESERVED, reserved);
-
-        if (tagId != null)
-            json.put(Field.TAG_ID, tagId);
-
-        if (properties != null)
-            json.put("properties", properties);
-
-        if (propertiesToSet != null)
-            json.put("propertiesToSet", propertiesToSet);
-
-        if (propertiesToRemove != null)
-            json.put("propertiesToRemove", propertiesToRemove);
-
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s", bucketName)));
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
-
-        String payload = gson.toJson(json);
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("PUT");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
-
-        long start = System.currentTimeMillis();
-        try {
-            Response response = builder.put(Entity.json(json));
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 200);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
-    }
-
-    public RequestResponse updateData(Data data) {
-        Map<String, Object> json = new HashMap<>();
+            body.put("tagId", data.getTagId());
         if (data.getReserved() != null)
-            json.put(Field.RESERVED, data.getReserved());
+            body.put("reserved", data.getReserved());
+        body.put("properties", data.getProperties());
+        return body;
+    }
 
-        if (data.getTagId() != null)
-            json.put(Field.TAG_ID, data.getTagId());
+    // ---------------------------------------------------------------- read
 
-        if (data.getProperties() != null)
-            json.put("properties", data.getProperties());
+    /** The row with the given id; empty when it doesn't exist (or is not visible to the user). */
+    public Optional<DataRow<T>> get(long id) {
+        List<DataRow<T>> rows = get(Collections.singletonList(id));
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
 
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/%d", bucketName, data.getId())));
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
+    /** The rows with the given ids; missing ids are skipped. */
+    public List<DataRow<T>> get(Collection<Long> ids) {
+        if (ids.isEmpty())
+            return Collections.emptyList();
+        // one existing row comes as an object, otherwise a list
+        JsonNode json = databucket.call("GET", path + "/" + ids(ids), null);
+        return json.isArray() ? rows(json) : Collections.singletonList(row(json));
+    }
 
-        String payload = gson.toJson(json);
+    /** A search for rows matching the rules; see {@link Query}. */
+    public Query<T> find(Rules rules) {
+        return new Query<>(this, rules);
+    }
 
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("PUT");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
+    /** Number of rows matching the rules. */
+    public long count(Rules rules) {
+        return databucket.call("POST", path + "/get?limit=0", rules.toBody()).path("total").asLong();
+    }
 
-        long start = System.currentTimeMillis();
+    Page<T> fetch(Rules rules, int page, int limit, String sort) {
+        JsonNode json = databucket.call("POST", path + "/get?page=" + page + "&limit=" + limit + "&sort=" + encode(sort),
+                rules.toBody());
+        return new Page<>(rows(json.path("data")), json.path("page").asInt(page), json.path("limit").asInt(limit),
+                json.path("total").asLong(), json.path("totalPages").asInt());
+    }
+
+    // ---------------------------------------------------------------- reserve
+
+    /** A reservation of free rows matching the rules; see {@link Reserve}. */
+    public Reserve<T> reserve(Rules rules) {
+        return new Reserve<>(this, rules);
+    }
+
+    Reservation<T> reserve(Rules rules, int limit, String sort, String forUser) {
+        Map<String, Object> body = rules.toBody();
+        if (forUser != null)
+            body.put("targetOwnerUsername", forUser);
+        JsonNode json = databucket.call("POST", path + "/reserve?limit=" + limit + "&sort=" + encode(sort), body);
+        return new Reservation<>(rows(json.path("data")), json.path("available").asLong());
+    }
+
+    /** Releases the rows (reserved = false); returns the number of changed rows. */
+    public int release(long... ids) {
+        return update(Change.create().reserved(false), ids);
+    }
+
+    // ---------------------------------------------------------------- modify and remove
+
+    /** Applies the change to the rows with the given ids; returns the number of changed rows. */
+    public int update(Change change, long... ids) {
+        return update(change, LongStream.of(ids).boxed().collect(Collectors.toList()));
+    }
+
+    /** Applies the change to the rows with the given ids; returns the number of changed rows. */
+    public int update(Change change, Collection<Long> ids) {
+        if (ids.isEmpty())
+            return 0;
+        return count(databucket.call("PUT", path + "/" + ids(ids), change.toBody()));
+    }
+
+    /** Applies the change to all rows matching the rules (at least one rule); returns the number of changed rows. */
+    public int update(Rules rules, Change change) {
+        requireRules(rules, "modify");
+        Map<String, Object> body = change.toBody();
+        body.putAll(rules.toBody());
+        return count(databucket.call("PUT", path, body));
+    }
+
+    /** Removes the rows with the given ids together with their history; returns the number of removed rows. */
+    public int delete(long... ids) {
+        if (ids.length == 0)
+            return 0;
+        return count(databucket.call("DELETE", path + "/" + ids(LongStream.of(ids).boxed().collect(Collectors.toList())), null));
+    }
+
+    /** Removes all rows matching the rules (at least one rule) together with their history. */
+    public int delete(Rules rules) {
+        requireRules(rules, "remove");
+        return count(databucket.call("DELETE", path, rules.toBody()));
+    }
+
+    // ---------------------------------------------------------------- history (buckets with history enabled)
+
+    /** The changes of a row, oldest first. */
+    public List<HistoryEntry<T>> history(long id) {
+        JsonNode json = databucket.call("GET", path + "/" + id + "/history", null);
+        List<HistoryEntry<T>> entries = new ArrayList<>();
+        for (JsonNode e : json)
+            entries.add(new HistoryEntry<>(e.path("id").asLong(), id, longOrNull(e.get("tag_id")),
+                    e.hasNonNull("reserved") ? e.get("reserved").asBoolean() : null,
+                    e.path("properties").asBoolean(false), null, instant(e.get("modified_at")), e.path("modified_by").asText(null)));
+        return entries;
+    }
+
+    /**
+     * A search of the history of the rows matching the rules (by their current state; {@link Rules#ALL} for all
+     * rows); see {@link HistorySearch}. Databucket 3.14.0+.
+     */
+    public HistorySearch<T> searchHistory(Rules rows) {
+        return new HistorySearch<>(this, rows);
+    }
+
+    HistoryPage<T> searchHistory(Rules rows, Rules entries, int page, int limit, String sort, boolean withProperties) {
+        Map<String, Object> body = rows.toBody();
+        entries.toBody().forEach((key, value) -> body.put("logic".equals(key) ? "historyLogic" : "historyRules", value));
+        JsonNode json = databucket.call("POST", path + "/history/get?page=" + page + "&limit=" + limit
+                + "&sort=" + encode(sort) + (withProperties ? "&properties=true" : ""), body);
+        List<HistoryEntry<T>> list = new ArrayList<>();
+        for (JsonNode e : json.path("history"))
+            list.add(new HistoryEntry<>(e.path("id").asLong(), e.path("dataId").asLong(), longOrNull(e.get("tagId")),
+                    e.hasNonNull("reserved") ? e.get("reserved").asBoolean() : null,
+                    e.path("propertiesChanged").asBoolean(false), properties(e.get("properties")),
+                    instant(e.get("modifiedAt")), e.path("modifiedBy").asText(null)));
+        return new HistoryPage<>(list, json.path("page").asInt(page), json.path("limit").asInt(limit),
+                json.path("total").asLong(), json.path("totalPages").asInt());
+    }
+
+    /** The properties of a row as they were in the given history entries (by history entry id). */
+    public Map<Long, T> historyProperties(long id, long... historyIds) {
+        Map<Long, T> result = new LinkedHashMap<>();
+        if (historyIds.length == 0)
+            return result;
+        JsonNode json = databucket.call("GET", path + "/" + id + "/history/"
+                + ids(LongStream.of(historyIds).boxed().collect(Collectors.toList())), null);
+        for (JsonNode e : json)
+            result.put(e.path("id").asLong(), properties(e.get("properties")));
+        return result;
+    }
+
+    /** Removes the history of a row (the row itself stays); returns the number of removed history entries. */
+    public int clearHistory(long id) {
+        return count(databucket.call("DELETE", path + "/" + id + "/history/clear", null));
+    }
+
+    /** Removes the history of all rows matching the rules (at least one rule); returns the number of rows. */
+    public int clearHistory(Rules rules) {
+        requireRules(rules, "clear the history of");
+        return count(databucket.call("DELETE", path + "/history/clear", rules.toBody()));
+    }
+
+    // ---------------------------------------------------------------- mapping
+
+    private List<DataRow<T>> rows(JsonNode array) {
+        if (array == null || !array.isArray())
+            return Collections.emptyList();
+        List<DataRow<T>> rows = new ArrayList<>();
+        for (JsonNode item : array)
+            rows.add(row(item));
+        return rows;
+    }
+
+    private DataRow<T> row(JsonNode json) {
+        return new DataRow<>(json.path("id").asLong(), longOrNull(json.get("tagId")), json.path("reserved").asBoolean(),
+                json.path("owner").asText(null), properties(json.get("properties")),
+                json.path("createdBy").asText(null), instant(json.get("createdAt")),
+                json.path("modifiedBy").asText(null), instant(json.get("modifiedAt")));
+    }
+
+    private T properties(JsonNode json) {
+        if (json == null || json.isNull())
+            return null;
         try {
-            Response response = builder.put(Entity.json(data));
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 200);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
+            if (json.isTextual()) // stored as text by some endpoints
+                json = databucket.mapper().readTree(json.asText());
+            return databucket.mapper().treeToValue(json, type);
+        } catch (JsonProcessingException e) {
+            throw new DatabucketException(0, "Can not read the properties as " + type.getName() + ": " + e.getOriginalMessage(), json.toString());
         }
-
-        return requestResponse;
     }
 
-    public RequestResponse deleteData(Data data) {
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/%d", bucketName, data.getId())));
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("DELETE");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(null);
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
-
-        long start = System.currentTimeMillis();
-        try {
-            Response response = builder.delete();
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 201);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
+    private static Long longOrNull(JsonNode json) {
+        return json == null || json.isNull() ? null : json.asLong();
     }
 
-    public RequestResponse deleteData(String ids) {
-        WebTarget webTarget = databucket.getClient().target(databucket.buildUrl(String.format("/api/bucket/%s/%s", bucketName, ids)));
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
-        setHeaders(builder);
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("DELETE");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(null);
-        requestResponse.setRequestUrl(webTarget.getUri().toString());
-
-        long start = System.currentTimeMillis();
-        try {
-            Response response = builder.delete();
-            requestResponse.setResponseStatus(response.getStatus());
-            requestResponse.setResponseCorrect(response.getStatus() == 201);
-            requestResponse.setResponseHeaders(response.getHeaders());
-            requestResponse.setResponseBody(response.readEntity(String.class));
-        } catch (Exception e) {
-            requestResponse.setResponseCorrect(false);
-            requestResponse.setException(e);
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
+    private static Instant instant(JsonNode json) {
+        if (json == null || json.isNull())
+            return null;
+        if (json.isNumber())
+            return Instant.ofEpochMilli(json.asLong());
+        return Instant.parse(json.asText());
     }
 
-    public RequestResponse deleteData(Rules rules) {
-
-        Map<String, Object> json = new HashMap<>();
-        json.put("rules", rules.toNativeObject());
-        String payload = gson.toJson(json);
-
-        String url = databucket.buildUrl(String.format("/api/bucket/%s", bucketName));
-
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setRequestMethod("DELETE");
-        requestResponse.setRequestHeaders(databucket.getHeaders());
-        requestResponse.setRequestBody(payload);
-        requestResponse.setRequestUrl(url);
-
-        long start = System.currentTimeMillis();
-        try {
-            StringEntity entity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-
-            HttpEntityDelete httpEntityDelete = new HttpEntityDelete(url);
-            httpEntityDelete.setHeaders(databucket.getHeaders2());
-            httpEntityDelete.setEntity(entity);
-            HttpResponse response = databucket.getHttpClient().execute(httpEntityDelete);
-
-            String content = new BufferedReader(
-                    new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))
-                    .lines()
-                    .collect(Collectors.joining("\n"));
-
-            requestResponse.setResponseStatus(response.getStatusLine().getStatusCode());
-            requestResponse.setResponseCorrect(response.getStatusLine().getStatusCode() == 201);
-            requestResponse.setResponseBody(content);
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            requestResponse.setResponseDuration(System.currentTimeMillis() - start);
-        }
-
-        return requestResponse;
+    /** The number in a message such as "Modified 3 data row(s)". */
+    private static int count(JsonNode json) {
+        Matcher matcher = NUMBER.matcher(json.path("message").asText(""));
+        return matcher.find() ? Integer.parseInt(matcher.group()) : 0;
     }
 
-    public Map<String, Object> strToJson(String text) {
-        return gson.fromJson(text, Map.class);
+    private static String ids(Collection<Long> ids) {
+        return ids.stream().map(String::valueOf).collect(Collectors.joining(","));
     }
 
-    public Data strToData(String dataStr) {
-        return jsonToData(gson.fromJson(dataStr, Map.class));
+    private static String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
-    public Data jsonToData(Map<String, Object> jsonObj) {
-        Long id = null;
-        Integer tagId = null;
-        Boolean reserved = null;
-        String owner = null;
-        Map<String, Object> properties = null;
-        String createdBy = null;
-        Date createdAt = null;
-        String modifiedBy = null;
-        Date modifiedAt = null;
-
-        if (jsonObj.containsKey(Field.ID))
-            id = ((Double) jsonObj.get(Field.ID)).longValue();
-
-        if (jsonObj.containsKey(Field.TAG_ID))
-            if (jsonObj.get(Field.TAG_ID) != null)
-                tagId = ((Double) jsonObj.get(Field.TAG_ID)).intValue();
-
-        if (jsonObj.containsKey(Field.RESERVED)) {
-            Object objReserved = jsonObj.get(Field.RESERVED);
-            if (objReserved instanceof Boolean)
-                reserved = (Boolean) objReserved;
-            else
-                reserved = ((Double) objReserved) == 1;
-        }
-
-        if (jsonObj.containsKey(Field.OWNER))
-            owner = ((String) jsonObj.get(Field.OWNER));
-
-        if (jsonObj.containsKey(Field.PROPERTIES))
-            properties = (Map<String, Object>) jsonObj.get(Field.PROPERTIES);
-
-        if (jsonObj.containsKey(Field.CREATED_BY))
-            createdBy = (String) jsonObj.get(Field.CREATED_BY);
-
-        String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-        if (jsonObj.containsKey(Field.CREATED_AT)) {
-            String dateTimeStr = (String) jsonObj.get(Field.CREATED_AT);
-            DateFormat format = new SimpleDateFormat(DATE_FORMAT);
-            try {
-                createdAt = format.parse(dateTimeStr);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (jsonObj.containsKey(Field.MODIFIED_BY))
-            modifiedBy = (String) jsonObj.get(Field.MODIFIED_BY);
-
-        if (jsonObj.containsKey(Field.MODIFIED_AT)) {
-            Object obj = jsonObj.get(Field.MODIFIED_AT);
-            if (obj != null) {
-                String dateTimeStr = (String) jsonObj.get(Field.MODIFIED_AT);
-                DateFormat format = new SimpleDateFormat(DATE_FORMAT);
-                try {
-                    modifiedAt = format.parse(dateTimeStr);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return new Data(id, tagId, reserved, owner, properties, createdAt, createdBy, modifiedAt, modifiedBy);
+    private void requireRules(Rules rules, String action) {
+        if (rules == null || rules.isEmpty())
+            throw new IllegalArgumentException("Can not " + action + " data without rules (bucket " + name + ")");
     }
 
-    public Data customJsonToData(Map<String, Object> customJsonObj) {
-        Long id = null;
-        Integer tagId = null;
-        Boolean reserved = null;
-        String owner = null;
-        Map<String, Object> properties;
-        String createdBy = null;
-        Date createdAt = null;
-        String modifiedBy = null;
-        Date modifiedAt = null;
-
-        if (customJsonObj.containsKey(Field.ID))
-            id = ((Double) customJsonObj.get(Field.ID)).longValue();
-
-        if (customJsonObj.containsKey(Field.TAG_ID))
-            if (customJsonObj.get(Field.TAG_ID) != null)
-                tagId = ((Double) customJsonObj.get(Field.TAG_ID)).intValue();
-
-        if (customJsonObj.containsKey(Field.RESERVED))
-            reserved = (Boolean) customJsonObj.get(Field.RESERVED);
-
-        if (customJsonObj.containsKey(Field.OWNER))
-            owner = ((String) customJsonObj.get(Field.OWNER));
-
-        if (customJsonObj.containsKey(Field.CREATED_BY))
-            createdBy = (String) customJsonObj.get(Field.CREATED_BY);
-
-        String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-        if (customJsonObj.containsKey(Field.CREATED_AT)) {
-            String dateTimeStr = (String) customJsonObj.get(Field.CREATED_AT);
-            DateFormat format = new SimpleDateFormat(DATE_FORMAT);
-            try {
-                createdAt = format.parse(dateTimeStr);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (customJsonObj.containsKey(Field.MODIFIED_BY))
-            modifiedBy = (String) customJsonObj.get(Field.MODIFIED_BY);
-
-        if (customJsonObj.containsKey(Field.MODIFIED_AT)) {
-            Object obj = customJsonObj.get(Field.MODIFIED_AT);
-            if (obj != null) {
-                String dateTimeStr = (String) customJsonObj.get(Field.MODIFIED_AT);
-                DateFormat format = new SimpleDateFormat(DATE_FORMAT);
-                try {
-                    modifiedAt = format.parse(dateTimeStr);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        properties = new HashMap<>();
-        Data data = new Data(id, tagId, reserved, owner, properties, createdAt, createdBy, modifiedAt, modifiedBy);
-
-        customJsonObj.forEach((key, value) -> {
-            if (key.startsWith("$."))
-                data.setProperty(key.substring(2), value);
-        });
-
-        return data;
+    @Override
+    public String toString() {
+        return "Bucket{" + name + "}";
     }
-
-    private List<Map<String, String>> fieldsToColumns(List<String> fields) {
-        List<Map<String, String>> columns = new ArrayList<>();
-        fields.forEach(field -> {
-            Map<String, String> map = new HashMap<>();
-            map.put("field", field);
-            map.put("title", field);
-            columns.add(map);
-        });
-        return columns;
-    }
-
 }

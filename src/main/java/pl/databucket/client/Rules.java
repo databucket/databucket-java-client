@@ -1,108 +1,80 @@
 package pl.databucket.client;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Rules {
+/**
+ * Which data rows a call works on.
+ * <pre>{@code
+ * Rules.where(Rule.property("$.status").eq("active"), Rule.reserved().eq(false))  // all must match
+ * Rules.ALL                                                                      // every row
+ * Rules.fromRules(List.of(List.of("$.status", "==", "active")))                  // the API "rules" format
+ * Rules.fromLogic(jsonLogic)                                                     // JsonLogic, e.g. from the rich filter
+ * }</pre>
+ */
+public final class Rules {
 
-    LogicalOperator logicalOperator = LogicalOperator.and;
-    List<Object> rules = new ArrayList<>();
+    /** No conditions: every row (not accepted when modifying or removing data). */
+    public static final Rules ALL = new Rules(null, null);
 
-    public Rules() {
+    private final Object logic;
+    private final List<?> rules;
+
+    private Rules(Object logic, List<?> rules) {
+        this.logic = logic;
+        this.rules = rules;
     }
 
-    public Rules(List<Rule> rules) {
-        this.rules.addAll(rules);
+    /** Rows matching all the rules. */
+    public static Rules where(Rule... rules) {
+        return where(Arrays.asList(rules));
     }
 
-    public Rules(Rule rule) {
-        this.rules.add(rule);
+    /** Rows matching all the rules. */
+    public static Rules where(Collection<Rule> rules) {
+        if (rules.isEmpty())
+            return ALL;
+        if (rules.size() == 1)
+            return new Rules(rules.iterator().next().toLogic(), null);
+        return new Rules(Rule.and(rules).toLogic(), null);
     }
 
-    public Rules(Object leftObject, Operator operator, Object rightObject) {
-        this.rules.add(new Rule(leftObject, operator, rightObject));
+    /**
+     * Rules in the API "rules" format, e.g. copied from the "API request" tab of the rich filter:
+     * {@code [["$.city", "==", "Paris"], {"or": [["tagId", "in", [1, 2]], ["$.age", ">", 30]]}]}.
+     * <p>
+     * Note: in this format a value that starts with {@code $} or equals a field name (e.g. "owner") is read as
+     * a property or field, not as text. {@link #where(Rule...)} has no such ambiguity.
+     */
+    public static Rules fromRules(List<?> rules) {
+        return new Rules(null, new ArrayList<>(rules));
     }
 
-    public Rules(LogicalOperator logicalOperator) {
-        this.logicalOperator = logicalOperator;
+    /** A JsonLogic expression, e.g. {@code {"==": [{"var": "$.city"}, "Paris"]}}. */
+    public static Rules fromLogic(Map<String, ?> logic) {
+        return new Rules(logic, null);
     }
 
-    public void addRule(Object leftObject, Operator operator, Object rightObject) {
-        this.rules.add(new Rule(leftObject, operator, rightObject));
+    boolean isEmpty() {
+        return logic == null && (rules == null || rules.isEmpty());
     }
 
-    public void addRule(Rule rule) {
-        this.rules.add(rule);
+    /** The request body items: {@code logic} or {@code rules}. */
+    Map<String, Object> toBody() {
+        Map<String, Object> body = new LinkedHashMap<>();
+        if (logic != null)
+            body.put("logic", logic);
+        else if (rules != null)
+            body.put("rules", rules);
+        return body;
     }
 
-    public void addRules(List<Rule> rules) {
-        this.rules.addAll(rules);
-    }
-
-    public void addNestedRules(Rules rules) {
-        this.rules.add(rules);
-    }
-
-    public List<Object> getOwnRules() {
-        return this.rules;
-    }
-
-    public LogicalOperator getOwnOperator() {
-        return this.logicalOperator;
-    }
-
-    public List<Object> toNativeObject() {
-        List<Object> list = new ArrayList<>();
-        if (getOwnRules().size() > 0) {
-            if (getOwnOperator() == LogicalOperator.and) {
-                getOwnRules().forEach(item -> {
-                    if (item instanceof Rules)
-                        list.add(rulesToMap((Rules) item));
-                    else if (item instanceof Rule)
-                        list.add(ruleToList((Rule) item));
-                });
-            } else
-                list.add(rulesToMap(this));
-        }
-        return list;
-    }
-
-    private Map<String, Object> rulesToMap(Rules rules) {
-        List<Object> list = new ArrayList<>();
-        rules.getOwnRules().forEach(item -> {
-            if (item instanceof Rules)
-                list.add(rulesToMap((Rules) item));
-            else if (item instanceof Rule)
-                list.add(ruleToList((Rule) item));
-        });
-
-        Map<String, Object> map = new HashMap<>();
-        map.put(rules.getOwnOperator().toString(), list);
-        return map;
-    }
-
-    private List<Object> ruleToList(Rule rule) {
-        List<Object> list = new ArrayList<>();
-
-        // leftObject
-        if (rule.getLeftObject() instanceof PropertyEnum) {
-            Object enumValue = ((PropertyEnum) rule.getLeftObject()).getValue();
-            list.add(enumValue);
-        } else
-            list.add(rule.getLeftObject());
-
-        // operator
-        list.add(rule.getOperator().toString());
-
-        // rightObject
-        if (rule.getRightObject() instanceof PropertyEnum) {
-            Object enumValue = ((PropertyEnum) rule.getRightObject()).getValue();
-            list.add(enumValue);
-        } else
-            list.add(rule.getRightObject());
-
-        return list;
+    @Override
+    public String toString() {
+        return isEmpty() ? "ALL" : toBody().toString();
     }
 }
