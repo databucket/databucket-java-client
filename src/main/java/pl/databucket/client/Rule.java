@@ -44,6 +44,11 @@ public final class Rule {
         return new Operand(field.apiName(), false);
     }
 
+    /** A field of a history entry, for {@link HistorySearch#where(Rule...)}. */
+    public static Operand field(HistoryField field) {
+        return new Operand(field.apiName(), false);
+    }
+
     public static Operand id() {
         return field(Field.ID);
     }

@@ -169,17 +169,40 @@ public final class Bucket<T> {
         return count(databucket.call("DELETE", path, rules.toBody()));
     }
 
-    // ---------------------------------------------------------------- history (MEMBER or higher)
+    // ---------------------------------------------------------------- history (buckets with history enabled)
 
-    /** The changes of a row, oldest first (bucket with history enabled). */
-    public List<HistoryEntry> history(long id) {
+    /** The changes of a row, oldest first. */
+    public List<HistoryEntry<T>> history(long id) {
         JsonNode json = databucket.call("GET", path + "/" + id + "/history", null);
-        List<HistoryEntry> entries = new ArrayList<>();
+        List<HistoryEntry<T>> entries = new ArrayList<>();
         for (JsonNode e : json)
-            entries.add(new HistoryEntry(e.path("id").asLong(), longOrNull(e.get("tag_id")),
+            entries.add(new HistoryEntry<>(e.path("id").asLong(), id, longOrNull(e.get("tag_id")),
                     e.hasNonNull("reserved") ? e.get("reserved").asBoolean() : null,
-                    e.path("properties").asBoolean(false), instant(e.get("modified_at")), e.path("modified_by").asText(null)));
+                    e.path("properties").asBoolean(false), null, instant(e.get("modified_at")), e.path("modified_by").asText(null)));
         return entries;
+    }
+
+    /**
+     * A search of the history of the rows matching the rules (by their current state; {@link Rules#ALL} for all
+     * rows); see {@link HistorySearch}. Databucket 3.14.0+.
+     */
+    public HistorySearch<T> searchHistory(Rules rows) {
+        return new HistorySearch<>(this, rows);
+    }
+
+    HistoryPage<T> searchHistory(Rules rows, Rules entries, int page, int limit, String sort, boolean withProperties) {
+        Map<String, Object> body = rows.toBody();
+        entries.toBody().forEach((key, value) -> body.put("logic".equals(key) ? "historyLogic" : "historyRules", value));
+        JsonNode json = databucket.call("POST", path + "/history/get?page=" + page + "&limit=" + limit
+                + "&sort=" + encode(sort) + (withProperties ? "&properties=true" : ""), body);
+        List<HistoryEntry<T>> list = new ArrayList<>();
+        for (JsonNode e : json.path("history"))
+            list.add(new HistoryEntry<>(e.path("id").asLong(), e.path("dataId").asLong(), longOrNull(e.get("tagId")),
+                    e.hasNonNull("reserved") ? e.get("reserved").asBoolean() : null,
+                    e.path("propertiesChanged").asBoolean(false), properties(e.get("properties")),
+                    instant(e.get("modifiedAt")), e.path("modifiedBy").asText(null)));
+        return new HistoryPage<>(list, json.path("page").asInt(page), json.path("limit").asInt(limit),
+                json.path("total").asLong(), json.path("totalPages").asInt());
     }
 
     /** The properties of a row as they were in the given history entries (by history entry id). */

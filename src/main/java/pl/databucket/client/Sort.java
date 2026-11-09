@@ -29,4 +29,12 @@ public final class Sort {
     public static String desc(Field field) {
         return desc(field.apiName());
     }
+
+    public static String asc(HistoryField field) {
+        return asc(field.apiName());
+    }
+
+    public static String desc(HistoryField field) {
+        return desc(field.apiName());
+    }
 }

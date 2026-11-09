@@ -4,7 +4,7 @@ Java client for [Databucket](https://github.com/databucket/databucket-server): f
 data from your automated tests.
 
 - Java 11+, one dependency (Jackson), the JDK `HttpClient`
-- API version 2 of Databucket (3.13.0 or newer)
+- API version 2 of Databucket (3.13.0 or newer; history search and history for ROBOT accounts: 3.14.0)
 - Sign-in with a password or with a token of your identity provider (SSO robot accounts, Databucket 3.10.0+);
   the token is renewed when it expires
 - Thread-safe; parallel tests never reserve the same row
@@ -82,7 +82,24 @@ Dates are compared as ISO text with `Z`, e.g. `Instant.parse("2026-01-01T00:00:0
 | `reserve(rules).one()`, `.limit(3).sort(Sort.RANDOM).fetch()`, `.available()`, `.forUser("john")` (ADMIN) | `POST /api/bucket/{bucket}/reserve` |
 | `update(change, ids...)`, `update(rules, change)`, `release(ids...)` | `PUT /api/bucket/{bucket}[/{ids}]` |
 | `delete(ids...)`, `delete(rules)` | `DELETE /api/bucket/{bucket}[/{ids}]` |
-| `history(id)`, `historyProperties(id, historyIds...)`, `clearHistory(id)`, `clearHistory(rules)` (MEMBER or higher) | `/api/bucket/{bucket}/{id}/history...` |
+| `history(id)`, `historyProperties(id, historyIds...)`, `clearHistory(id)`, `clearHistory(rules)` | `/api/bucket/{bucket}/{id}/history...` |
+| `searchHistory(rows).where(...).sort(...).limit(50).withProperties().fetch()` / `.list()` / `.count()` | `POST /api/bucket/{bucket}/history/get` |
+
+## History
+
+```java
+// changes made by the nightly robot since yesterday, on the rows that are now in GB, newest first
+HistoryPage<User> page = users.searchHistory(Rules.where(Rule.property("$.address.country").eq("GB")))
+        .where(Rule.field(HistoryField.MODIFIED_BY).eq("nightly-robot"),
+               Rule.field(HistoryField.MODIFIED_AT).ge(Instant.now().minus(1, ChronoUnit.DAYS)))
+        .sort(Sort.desc(HistoryField.MODIFIED_AT))
+        .limit(50)
+        .withProperties()                 // the properties of each version
+        .fetch();
+```
+
+The rows are chosen by their current state (`Rules`), the entries by the fields of the history (`HistoryField`:
+`ID`, `DATA_ID`, `TAG_ID`, `RESERVED`, `MODIFIED_BY`, `MODIFIED_AT`); the properties of past versions can't be searched.
 
 Errors come as `DatabucketException` with the HTTP status and the server's message.
 
@@ -108,7 +125,8 @@ Requests are logged at DEBUG level with `System.Logger` (`pl.databucket.client.D
 ```
 
 The integration tests (`*IT`) need Databucket with the DEMO dataset, e.g. the docker compose of databucket-server
-(http://databucket.localhost, project "Acme Shop", users `demo-robot` and `demo-member`). Change it with
+(http://databucket.localhost, project "Acme Shop", users `demo-robot` and `demo-member`); the history tests need
+Databucket 3.14.0+. Change it with
 `-Ddatabucket.url=...`, `-Ddatabucket.project=...`, `-Ddatabucket.bucket=...` (or `DATABUCKET_URL`, ...).
 They work only on rows they create and remove them at the end.
 

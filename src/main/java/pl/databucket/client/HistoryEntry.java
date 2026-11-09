@@ -4,21 +4,28 @@ import java.time.Instant;
 
 /**
  * One change of a data row (bucket with history enabled). Only the items that changed are set.
+ *
+ * @param <T> type of the properties
  */
-public final class HistoryEntry {
+public final class HistoryEntry<T> {
 
     private final long id;
+    private final long dataId;
     private final Long tagId;
     private final Boolean reserved;
     private final boolean propertiesChanged;
+    private final T properties;
     private final Instant modifiedAt;
     private final String modifiedBy;
 
-    HistoryEntry(long id, Long tagId, Boolean reserved, boolean propertiesChanged, Instant modifiedAt, String modifiedBy) {
+    HistoryEntry(long id, long dataId, Long tagId, Boolean reserved, boolean propertiesChanged, T properties,
+                 Instant modifiedAt, String modifiedBy) {
         this.id = id;
+        this.dataId = dataId;
         this.tagId = tagId;
         this.reserved = reserved;
         this.propertiesChanged = propertiesChanged;
+        this.properties = properties;
         this.modifiedAt = modifiedAt;
         this.modifiedBy = modifiedBy;
     }
@@ -26,6 +33,11 @@ public final class HistoryEntry {
     /** Id of the history entry (use it with {@link Bucket#historyProperties(long, long...)}). */
     public long getId() {
         return id;
+    }
+
+    /** Id of the data row. */
+    public long getDataId() {
+        return dataId;
     }
 
     /** The new tag, or null when the tag did not change. */
@@ -38,9 +50,17 @@ public final class HistoryEntry {
         return reserved;
     }
 
-    /** Whether the properties changed (get them with {@link Bucket#historyProperties(long, long...)}). */
+    /** Whether the properties changed. */
     public boolean isPropertiesChanged() {
         return propertiesChanged;
+    }
+
+    /**
+     * The properties of this version: only from {@link HistorySearch#withProperties()} and when they changed;
+     * otherwise null (see {@link Bucket#historyProperties(long, long...)}).
+     */
+    public T getProperties() {
+        return properties;
     }
 
     public Instant getModifiedAt() {
@@ -53,7 +73,7 @@ public final class HistoryEntry {
 
     @Override
     public String toString() {
-        return "HistoryEntry{id=" + id + ", tagId=" + tagId + ", reserved=" + reserved
+        return "HistoryEntry{id=" + id + ", dataId=" + dataId + ", tagId=" + tagId + ", reserved=" + reserved
                 + ", propertiesChanged=" + propertiesChanged + ", modifiedAt=" + modifiedAt + ", modifiedBy=" + modifiedBy + "}";
     }
 }

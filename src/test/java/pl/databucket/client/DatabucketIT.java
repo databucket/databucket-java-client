@@ -397,7 +397,7 @@ class DatabucketIT {
         items.reserve(mine(Rule.id().eq(row.getId()))).one().orElseThrow();
 
         Bucket<Item> asMember = member.bucket(BUCKET, Item.class);
-        List<HistoryEntry> history = asMember.history(row.getId());
+        List<HistoryEntry<Item>> history = asMember.history(row.getId());
         assertEquals(3, history.size(), history.toString());
         assertTrue(history.get(0).isPropertiesChanged());
         assertTrue(history.get(1).isPropertiesChanged());
@@ -413,11 +413,57 @@ class DatabucketIT {
     }
 
     @Test
-    void historyIsNotAvailableToRobots() {
-        // server: DataHistoryController allows MEMBER and ADMIN only
+    void historyForRobot() {
         DataRow<Item> row = items.insert(new Item("history-robot", "new", 1, List.of()));
-        DatabucketException e = assertThrows(DatabucketException.class, () -> items.history(row.getId()));
-        assertEquals(403, e.getStatus());
+        items.update(Change.create().set("$.status", "used"), row.getId());
+        List<HistoryEntry<Item>> history = items.history(row.getId());
+        assertEquals(2, history.size(), history.toString());
+        assertEquals(row.getId(), history.get(0).getDataId());
+        assertEquals(2, items.clearHistory(row.getId()));
+        assertTrue(items.history(row.getId()).isEmpty());
+
+        DatabucketException e = assertThrows(DatabucketException.class, () -> items.clearHistory(Long.MAX_VALUE / 2));
+        assertEquals(404, e.getStatus());
+    }
+
+    @Test
+    void searchHistory() {
+        String group = "search-" + UUID.randomUUID();
+        DataRow<Item> a = items.insert(new Item(group, "new", 1, List.of()));
+        DataRow<Item> b = items.insert(new Item(group, "new", 2, List.of()));
+        items.update(Change.create().set("$.status", "used"), a.getId());
+        items.reserve(mine(Rule.id().eq(b.getId()))).one().orElseThrow();
+        Rules rows = mine(Rule.property("$.name").eq(group));
+
+        // 2 inserts + 1 change + 1 reservation
+        assertEquals(4, items.searchHistory(rows).count());
+        assertEquals(1, items.searchHistory(rows).where(Rule.field(HistoryField.RESERVED).eq(true)).count());
+        // "a": the insert and the change, both by the robot
+        assertEquals(2, items.searchHistory(rows).where(Rule.field(HistoryField.DATA_ID).eq(a.getId()),
+                Rule.field(HistoryField.MODIFIED_BY).eq(Rule.CURRENT_USER)).count());
+        assertEquals(0, items.searchHistory(rows).where(Rule.field(HistoryField.MODIFIED_BY).eq("nobody")).count());
+
+        // rows by their current state: only "a" is used now
+        assertEquals(2, items.searchHistory(mine(Rule.property("$.name").eq(group), Rule.property("$.status").eq("used"))).count());
+
+        HistoryPage<Item> page = items.searchHistory(rows).sort(Sort.desc(HistoryField.ID)).limit(3).withProperties().fetch();
+        assertEquals(4, page.getTotal());
+        assertEquals(2, page.getTotalPages());
+        assertEquals(3, page.getEntries().size());
+        HistoryEntry<Item> newest = page.getEntries().get(0);
+        assertEquals(b.getId(), newest.getDataId());
+        assertEquals(Boolean.TRUE, newest.getReserved());
+        HistoryEntry<Item> changed = page.getEntries().stream().filter(e -> e.getDataId() == a.getId() && e.isPropertiesChanged())
+                .findFirst().orElseThrow();
+        assertNotNull(changed.getProperties());
+
+        List<HistoryEntry<Item>> second = items.searchHistory(rows).sort(Sort.desc(HistoryField.ID)).limit(3).page(2).list();
+        assertEquals(1, second.size());
+        assertNull(second.get(0).getProperties());
+
+        DatabucketException e = assertThrows(DatabucketException.class,
+                () -> items.searchHistory(rows).where(Rule.property("$.status").eq("used")).count());
+        assertEquals(400, e.getStatus());
     }
 
     // ---------------------------------------------------------------- helpers
