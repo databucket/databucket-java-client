@@ -1,5 +1,7 @@
 # databucket-java-client
 
+[![Maven Central](https://img.shields.io/maven-central/v/pl.databucket/databucket-client)](https://central.sonatype.com/artifact/pl.databucket/databucket-client)
+
 Java client for [Databucket](https://github.com/databucket/databucket-server): find, reserve, change and remove test
 data from your automated tests.
 
