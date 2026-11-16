@@ -22,6 +22,11 @@ data from your automated tests.
 Version 1.x (Java 8, API version 1) works with older Databucket servers; its code is on the `main` branch history
 before 2.0.0.
 
+The same features and version numbers as the [Python client](https://github.com/databucket/databucket-python-client) and
+the [JavaScript client](https://github.com/databucket/databucket-js-client).
+
+Runnable examples - JUnit 5 tests that reserve, change, create and find data on the DEMO dataset: [databucket-examples/java](https://github.com/databucket/databucket-examples/tree/main/java).
+
 ## Quick start
 
 ```java
