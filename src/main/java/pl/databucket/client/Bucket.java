@@ -121,12 +121,14 @@ public final class Bucket<T> {
         return new Reserve<>(this, rules);
     }
 
-    Reservation<T> reserve(Rules rules, int limit, String sort, String forUser) {
+    Reservation<T> reserve(Rules rules, int limit, String sort, String forUser, boolean count) {
         Map<String, Object> body = rules.toBody();
         if (forUser != null)
             body.put("targetOwnerUsername", forUser);
-        JsonNode json = databucket.call("POST", path + "/reserve?limit=" + limit + "&sort=" + encode(sort), body);
-        return new Reservation<>(rows(json.path("data")), json.path("available").asLong());
+        JsonNode json = databucket.call("POST", path + "/reserve?limit=" + limit + "&sort=" + encode(sort)
+                + (count ? "" : "&count=false"), body);
+        // not counted (count=false): no 'available' in the response
+        return new Reservation<>(rows(json.path("data")), json.has("available") ? json.path("available").asLong() : -1);
     }
 
     /** Releases the rows (reserved = false); returns the number of changed rows. */

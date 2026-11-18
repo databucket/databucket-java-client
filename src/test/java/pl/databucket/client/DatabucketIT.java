@@ -318,6 +318,21 @@ class DatabucketIT {
     }
 
     @Test
+    void reserveWithoutCount() {
+        String group = "reserve-no-count-" + UUID.randomUUID();
+        for (int i = 0; i < 3; i++)
+            items.insert(new Item(group, "free", i, List.of()));
+        Rules free = mine(Rule.property("$.name").eq(group));
+
+        Reservation<Item> two = items.reserve(free).limit(2).withoutCount().fetch();
+        assertEquals(2, two.getRows().size());
+        assertEquals(-1, two.getAvailable());
+
+        assertTrue(items.reserve(free).one().isPresent());
+        assertEquals(0, items.reserve(free).available());
+    }
+
+    @Test
     void parallelReservationsNeverShareARow() throws Exception {
         String group = "parallel-" + UUID.randomUUID();
         List<Item> list = IntStream.range(0, 20).mapToObj(i -> new Item(group, "free", i, List.of())).collect(Collectors.toList());
