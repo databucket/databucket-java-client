@@ -9,8 +9,12 @@ import java.util.Optional;
  * <pre>{@code
  * Optional<DataRow<User>> user = users.reserve(rules).one();
  * Reservation<User> r = users.reserve(rules).limit(3).sort(Sort.RANDOM).fetch();
+ * Reservation<User> quick = users.reserve(rules).limit(3).withoutCount().fetch();
  * long free = users.reserve(rules).available();
  * }</pre>
+ * Counting the free rows that still match ({@link Reservation#getAvailable()}) reads all of them: with many matching
+ * rows it is most of the time of a reservation. {@link #one()} never counts, {@link #withoutCount()} skips it for
+ * {@link #fetch()} (Databucket 3.16.3+; older servers always count).
  */
 public final class Reserve<T> {
 
@@ -19,6 +23,7 @@ public final class Reserve<T> {
     private int limit = 1;
     private String sort = "id";
     private String forUser;
+    private boolean count = true;
 
     Reserve(Bucket<T> bucket, Rules rules) {
         this.bucket = bucket;
@@ -45,18 +50,27 @@ public final class Reserve<T> {
         return this;
     }
 
-    public Reservation<T> fetch() {
-        return bucket.reserve(rules, limit, sort, forUser);
+    /**
+     * Reserve without counting the free rows still matching ({@link Reservation#getAvailable()} is then -1): faster
+     * when many rows match.
+     */
+    public Reserve<T> withoutCount() {
+        this.count = false;
+        return this;
     }
 
-    /** Reserves one row; empty when no free row matches. */
+    public Reservation<T> fetch() {
+        return bucket.reserve(rules, limit, sort, forUser, count);
+    }
+
+    /** Reserves one row; empty when no free row matches. Doesn't count the free rows (not needed here). */
     public Optional<DataRow<T>> one() {
-        List<DataRow<T>> rows = bucket.reserve(rules, 1, sort, forUser).getRows();
+        List<DataRow<T>> rows = bucket.reserve(rules, 1, sort, forUser, false).getRows();
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
 
     /** Number of free rows matching the rules; nothing is reserved. */
     public long available() {
-        return bucket.reserve(rules, 0, sort, forUser).getAvailable();
+        return bucket.reserve(rules, 0, sort, forUser, true).getAvailable();
     }
 }

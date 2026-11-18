@@ -20,7 +20,10 @@ public final class Reservation<T> {
         return rows;
     }
 
-    /** Free rows still matching the rules after this reservation. */
+    /**
+     * Free rows still matching the rules after this reservation; -1 when they were not counted
+     * ({@link Reserve#withoutCount()}).
+     */
     public long getAvailable() {
         return available;
     }

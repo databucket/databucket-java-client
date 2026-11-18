@@ -15,7 +15,7 @@ data from your automated tests.
 <dependency>
   <groupId>pl.databucket</groupId>
   <artifactId>databucket-client</artifactId>
-  <version>2.0.0</version>
+  <version>2.1.0</version>
 </dependency>
 ```
 
@@ -86,7 +86,7 @@ Dates are compared as ISO text with `Z`, e.g. `Instant.parse("2026-01-01T00:00:0
 | `insertAll(list)`, `insertAllData(list)` | `POST /api/bucket/{bucket}/multi` |
 | `get(id)`, `get(ids)` | `GET /api/bucket/{bucket}/{ids}` |
 | `find(rules).sort(Sort.desc("$.name")).limit(20).page(2).fetch()` / `.list()` / `.first()` / `.count()`, `count(rules)` | `POST /api/bucket/{bucket}/get` |
-| `reserve(rules).one()`, `.limit(3).sort(Sort.RANDOM).fetch()`, `.available()`, `.forUser("john")` (ADMIN) | `POST /api/bucket/{bucket}/reserve` |
+| `reserve(rules).one()`, `.limit(3).sort(Sort.RANDOM).fetch()`, `.withoutCount()`, `.available()`, `.forUser("john")` (ADMIN) | `POST /api/bucket/{bucket}/reserve` |
 | `update(change, ids...)`, `update(rules, change)`, `release(ids...)` | `PUT /api/bucket/{bucket}[/{ids}]` |
 | `delete(ids...)`, `delete(rules)` | `DELETE /api/bucket/{bucket}[/{ids}]` |
 | `history(id)`, `historyProperties(id, historyIds...)`, `clearHistory(id)`, `clearHistory(rules)` | `/api/bucket/{bucket}/{id}/history...` |
