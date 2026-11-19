@@ -222,6 +222,24 @@ class DatabucketIT {
     }
 
     @Test
+    void pageWithoutCount() {
+        String batch = "no-count-" + UUID.randomUUID();
+        items.insertAll(IntStream.rangeClosed(1, 5)
+                .mapToObj(i -> new Item(batch, "paged", i, List.of()))
+                .collect(Collectors.toList()));
+        Rules rules = mine(Rule.property("$.name").eq(batch));
+
+        Page<Item> page2 = items.find(rules).sort(Sort.desc("$.count")).limit(2).page(2).withoutCount().fetch();
+        assertEquals(List.of(3, 2), page2.getRows().stream().map(r -> r.getProperties().count).collect(Collectors.toList()));
+        assertEquals(-1, page2.getTotal());
+        assertEquals(-1, page2.getTotalPages());
+
+        assertEquals(5, items.find(rules).limit(10).list().size());
+        assertEquals(5, items.find(rules).sort(Sort.desc("$.count")).first().orElseThrow().getProperties().count);
+        assertEquals(5, items.find(rules).limit(2).fetch().getTotal());
+    }
+
+    @Test
     void mapProperties() {
         DataRow<Item> row = items.insert(new Item("as-map", "new", 5, List.of("x", "y")));
         Map<String, Object> props = raw.get(row.getId()).orElseThrow().getProperties();
