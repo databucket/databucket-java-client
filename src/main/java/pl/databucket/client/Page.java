@@ -35,11 +35,12 @@ public final class Page<T> {
         return limit;
     }
 
-    /** Number of all rows matching the rules. */
+    /** Number of all rows matching the rules; -1 when not counted ({@link Query#withoutCount()}). */
     public long getTotal() {
         return total;
     }
 
+    /** Number of pages; -1 when not counted. */
     public int getTotalPages() {
         return totalPages;
     }

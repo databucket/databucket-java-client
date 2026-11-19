@@ -107,11 +107,13 @@ public final class Bucket<T> {
         return databucket.call("POST", path + "/get?limit=0", rules.toBody()).path("total").asLong();
     }
 
-    Page<T> fetch(Rules rules, int page, int limit, String sort) {
-        JsonNode json = databucket.call("POST", path + "/get?page=" + page + "&limit=" + limit + "&sort=" + encode(sort),
-                rules.toBody());
+    Page<T> fetch(Rules rules, int page, int limit, String sort, boolean count) {
+        JsonNode json = databucket.call("POST", path + "/get?page=" + page + "&limit=" + limit + "&sort=" + encode(sort)
+                + (count ? "" : "&count=false"), rules.toBody());
+        // not counted (count=false): no 'total' and 'totalPages' in the response
+        boolean counted = json.has("total");
         return new Page<>(rows(json.path("data")), json.path("page").asInt(page), json.path("limit").asInt(limit),
-                json.path("total").asLong(), json.path("totalPages").asInt());
+                counted ? json.path("total").asLong() : -1, counted ? json.path("totalPages").asInt() : -1);
     }
 
     // ---------------------------------------------------------------- reserve
