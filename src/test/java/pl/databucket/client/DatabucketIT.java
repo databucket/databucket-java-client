@@ -460,6 +460,15 @@ class DatabucketIT {
     }
 
     @Test
+    void jobsOfAnUnknownKeyword() {
+        // the jobs need a project set up by an admin; an unknown keyword checks the call (Databucket 3.23.0+)
+        DatabucketException e = assertThrows(DatabucketException.class, () -> robot.previewJobs("client-it " + RUN));
+        assertEquals(404, e.getStatus());
+        assertTrue(e.getMessage().contains("No job has the keyword"), e.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> robot.runJobs(" "));
+    }
+
+    @Test
     void searchHistory() {
         String group = "search-" + UUID.randomUUID();
         DataRow<Item> a = items.insert(new Item(group, "new", 1, List.of()));

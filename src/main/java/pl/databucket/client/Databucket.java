@@ -90,6 +90,31 @@ public final class Databucket {
         return new Bucket<>(this, name, propertiesType);
     }
 
+    /**
+     * Runs all the jobs with the keyword (Settings → Jobs), e.g. "DEV cleaning", one after another by id, as this user
+     * (ROBOT or higher, with access to the jobs' buckets). A failed job doesn't stop the others: check
+     * {@link JobsRun#getErrors()}. Needs Databucket 3.23.0 or later.
+     *
+     * @throws DatabucketException 404 when no job has the keyword (the message lists the keywords), 409 when the jobs
+     *                             of the keyword are running
+     */
+    public JobsRun runJobs(String keyword) {
+        return jobs(keyword, false);
+    }
+
+    /** Like {@link #runJobs(String)}, but changes nothing: the count of each job is the rows it would run on. */
+    public JobsRun previewJobs(String keyword) {
+        return jobs(keyword, true);
+    }
+
+    private JobsRun jobs(String keyword, boolean preview) {
+        if (keyword == null || keyword.isBlank())
+            throw new IllegalArgumentException("The keyword is empty");
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("keyword", keyword);
+        return JobsRun.of(call("POST", "/api/task-schedules/run" + (preview ? "?preview=true" : ""), body));
+    }
+
     /** The project the client works in (signs in if not done yet); null when only a token was given. */
     public Project project() {
         token();
