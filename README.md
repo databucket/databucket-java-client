@@ -15,7 +15,7 @@ data from your automated tests.
 <dependency>
   <groupId>pl.databucket</groupId>
   <artifactId>databucket-client</artifactId>
-  <version>2.2.0</version>
+  <version>2.3.0</version>
 </dependency>
 ```
 
@@ -91,6 +91,16 @@ Dates are compared as ISO text with `Z`, e.g. `Instant.parse("2026-01-01T00:00:0
 | `delete(ids...)`, `delete(rules)` | `DELETE /api/bucket/{bucket}[/{ids}]` |
 | `history(id)`, `historyProperties(id, historyIds...)`, `clearHistory(id)`, `clearHistory(rules)` | `/api/bucket/{bucket}/{id}/history...` |
 | `searchHistory(rows).where(...).sort(...).limit(50).withProperties().fetch()` / `.list()` / `.count()` | `POST /api/bucket/{bucket}/history/get` |
+
+Jobs (on the client, not a bucket; Databucket 3.23.0+, ROBOT or higher):
+
+| Method | API |
+|---|---|
+| `databucket.runJobs("DEV cleaning")`, `databucket.previewJobs("DEV cleaning")` | `POST /api/task-schedules/run` |
+
+`runJobs` runs all the [jobs](https://github.com/databucket/databucket-server/wiki/Jobs) with the keyword (Settings → Jobs),
+one after another, as the signed-in user - e.g. to clean the test data before the tests. A failed job doesn't stop the
+others: check `getErrors()` and `getJobs()` of the result.
 
 ## History
 
