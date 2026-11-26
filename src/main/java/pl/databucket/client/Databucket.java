@@ -192,6 +192,23 @@ public final class Databucket {
         return call(method, path, body, true);
     }
 
+    // Data rows are changed with PATCH (Databucket 3.26.0+); an older server answers 405, then PUT, from then on
+    private volatile boolean changeWithPut;
+
+    /** Changes data rows: PATCH, or PUT for a server before 3.26.0. */
+    JsonNode change(String path, Object body) {
+        if (!changeWithPut) {
+            try {
+                return call("PATCH", path, body);
+            } catch (DatabucketException e) {
+                if (e.getStatus() != 405)
+                    throw e;
+                changeWithPut = true;
+            }
+        }
+        return call("PUT", path, body);
+    }
+
     private JsonNode call(String method, String path, Object body, boolean retry) {
         String currentToken = token();
         HttpRequest.Builder builder = request(path)
