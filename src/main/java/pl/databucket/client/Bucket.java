@@ -149,7 +149,7 @@ public final class Bucket<T> {
     public int update(Change change, Collection<Long> ids) {
         if (ids.isEmpty())
             return 0;
-        return count(databucket.call("PUT", path + "/" + ids(ids), change.toBody()));
+        return count(databucket.change(path + "/" + ids(ids), change.toBody()));
     }
 
     /** Applies the change to all rows matching the rules (at least one rule); returns the number of changed rows. */
@@ -157,7 +157,7 @@ public final class Bucket<T> {
         requireRules(rules, "modify");
         Map<String, Object> body = change.toBody();
         body.putAll(rules.toBody());
-        return count(databucket.call("PUT", path, body));
+        return count(databucket.change(path, body));
     }
 
     /** Removes the rows with the given ids together with their history; returns the number of removed rows. */
